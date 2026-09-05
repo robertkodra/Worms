@@ -1,0 +1,42 @@
+# Local credentials and provider state
+.env
+.env.*
+!.env.example
+.aws/
+.ssh/
+.vercel/
+.netlify/
+.openai/
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+
+# Dependencies, builds, and local reports
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.log
+*.tsbuildinfo
+*.map
+tmp/
+temp/
+.cache/
+
+# Machine/editor files and private working notes
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+.codex/
+private/
+local-notes/
+*.local
+*.blend1
+*.blend2
