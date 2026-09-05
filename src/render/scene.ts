@@ -1,12 +1,18 @@
 import * as THREE from "three";
 import { Game, Weapon, GameEvent, clamp } from "../game/simulation";
-import { WEAPON_IDS, WEAPONS } from "../game/weapons";
+import {
+  WEAPON_IDS,
+  WEAPONS,
+  BALLISTICS,
+  ProjectileKind,
+} from "../game/weapons";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../game/terrain";
 import {
   skyArt,
   terrainArt,
   wormArt,
   weaponArt,
+  projectileArt,
   puffArt,
   texture,
   COLORS,
@@ -53,6 +59,10 @@ export class GameScene {
   private labels: HTMLDivElement[] = [];
   private weapons: Record<Weapon, THREE.CanvasTexture>;
   private held: THREE.Mesh;
+  private ammunition: Record<ProjectileKind, THREE.CanvasTexture>;
+  private landingSquash = new Map<number, number>();
+  private lastTrailTick = -1;
+  private rings: { line: THREE.LineLoop; life: number; radius: number }[] = [];
   private bullets: THREE.Sprite[] = [];
   private fuseLabels: HTMLDivElement[] = [];
   private tracers: { line: THREE.Line; life: number }[] = [];
@@ -118,6 +128,12 @@ export class GameScene {
     this.weapons = Object.fromEntries(
       kinds.map((k) => [k, texture(weaponArt(k))]),
     ) as Record<Weapon, THREE.CanvasTexture>;
+    this.ammunition = Object.fromEntries(
+      Object.keys(BALLISTICS).map((kind) => [
+        kind,
+        texture(projectileArt(kind)),
+      ]),
+    ) as Record<ProjectileKind, THREE.CanvasTexture>;
     this.icons = Object.fromEntries(
       kinds.map((k) => [
         k,
@@ -285,6 +301,14 @@ export class GameScene {
     this.updateCamera();
   }
   reset(): void {
+    this.lastTrailTick = -1;
+    this.landingSquash.clear();
+    for (const ring of this.rings) {
+      this.scene.remove(ring.line);
+      ring.line.geometry.dispose();
+      (ring.line.material as THREE.Material).dispose();
+    }
+    this.rings = [];
     this.zoom = 1;
     this.center = { x: 800, y: 450 };
     this.manualUntil = 0;
@@ -308,9 +332,41 @@ export class GameScene {
 
   event(event: GameEvent): void {
     if (event.type === "blast") {
-      this.burst(event.x, event.y, 54, event.value ?? 60);
-      this.shake = this.reducedMotion ? 0 : 7;
+      const radius = event.value ?? 60;
+      this.burst(event.x, event.y, 18, radius * 0.65, "#a98c70");
+      this.burst(event.x, event.y, 9, radius * 0.3, "#f3ce8d");
+      this.shake = this.reducedMotion ? 0 : 3 + radius * 0.04;
+      const points = Array.from({ length: 48 }, (_, i) => {
+        const a = (i / 48) * Math.PI * 2;
+        return new THREE.Vector3(Math.cos(a), Math.sin(a), 0);
+      });
+      const ring = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({
+          color: "#f5d99e",
+          transparent: true,
+          opacity: 0.65,
+          depthTest: false,
+        }),
+      );
+      ring.position.set(event.x, WORLD_HEIGHT - event.y, 7);
+      ring.renderOrder = 9;
+      this.scene.add(ring);
+      this.rings.push({ line: ring, life: 0.26, radius });
     }
+    if (event.type === "land") {
+      const strength = Math.min(1, (event.value ?? 100) / 300);
+      if (event.actor !== undefined && !this.reducedMotion)
+        this.landingSquash.set(event.actor, strength * 0.18);
+      this.burst(
+        event.x,
+        event.y - 2,
+        3 + Math.round(strength * 4),
+        6 + strength * 6,
+        "#c5b596",
+      );
+    }
+    if (event.type === "bounce") this.burst(event.x, event.y, 2, 4, "#d4c49f");
     if (event.type === "shove") this.burst(event.x, event.y, 15, 25, "#c9bad9");
     if (event.type === "bridge")
       this.burst(event.x, event.y, 12, 15, "#c5dd92");
@@ -351,9 +407,11 @@ export class GameScene {
     size: number,
     color?: string,
   ): void {
+    if (this.reducedMotion) count = Math.min(5, Math.ceil(count * 0.25));
     for (let i = 0; i < count && this.particles.length < 240; i++) {
       const a = Math.random() * Math.PI * 2,
-        speed = 25 + Math.random() * size * 3;
+        speed =
+          (25 + Math.random() * size * 3) * (this.reducedMotion ? 0.15 : 1);
       const tint = color ?? ["#ffd889", "#ffb56b", "#dfc6a4", "#7c6455"][i % 4];
       const mat = new THREE.SpriteMaterial({
         map: this.puff,
@@ -407,6 +465,7 @@ export class GameScene {
         (clamp(focus.y - 60, 310, 530) - this.center.y) * Math.min(1, dt * 2);
     }
     this.updateCamera();
+    if (this.reducedMotion) this.shake = 0;
     if (this.shake > 0) {
       this.camera.position.x += (Math.random() - 0.5) * this.shake;
       this.camera.position.y += (Math.random() - 0.5) * this.shake;
@@ -437,18 +496,27 @@ export class GameScene {
       label.hidden = w.hp <= 0;
       if (w.hp <= 0) continue;
       const moving = w.grounded && Math.abs(w.vx) > 3;
+      const landing = Math.max(0, (this.landingSquash.get(w.id) ?? 0) - dt);
+      this.landingSquash.set(w.id, landing);
       const pulse = this.reducedMotion
         ? 0
-        : moving
-          ? Math.sin(w.walk * 0.22) * 0.1
-          : Math.sin(time * 0.002 + i) * 0.018;
+        : (moving ? Math.sin(w.walk * 0.22) * 0.07 : 0) +
+          (w.grounded ? landing : 0);
       sprite.material.map = this.wormTextures[w.team + (w.hurt > 0 ? 2 : 0)];
-      sprite.scale.set(38 * (1 + pulse) * w.facing, 41 * (1 - pulse), 1);
-      sprite.position.set(w.x, WORLD_HEIGHT - w.y + 18, 3);
-      sprite.rotation.z =
+      sprite.scale.set(32 * (1 + pulse) * w.facing, 38 * (1 - pulse), 1);
+      const tilt =
         !this.reducedMotion && !w.grounded
           ? clamp(w.vx * 0.0015, -0.3, 0.3)
           : 0;
+      sprite.rotation.z = tilt;
+      // The source art's foot pivot is (56, 101) in its 112px canvas.
+      // Keep that point on the collider foot through squash and rotation.
+      const footOffset = ((56 - 101) / 112) * sprite.scale.y;
+      sprite.position.set(
+        w.x + Math.sin(tilt) * footOffset,
+        WORLD_HEIGHT - w.y - Math.cos(tilt) * footOffset,
+        3,
+      );
       const p = this.worldToScreen(w.x, w.y - 45);
       label.style.transform = `translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;
       label.classList.toggle("active", playing && w.id === game.activeId);
@@ -537,6 +605,12 @@ export class GameScene {
         game.canPlace(weapon, target.x, target.y).valid ? "#c5e8a4" : "#ff9187",
       );
     }
+    const emitTrail =
+      playing &&
+      !this.reducedMotion &&
+      game.ticks % 4 === 0 &&
+      game.ticks !== this.lastTrailTick;
+    if (emitTrail) this.lastTrailTick = game.ticks;
     this.bullets.forEach((bullet, i) => {
       const p = game.projectiles[i];
       const fuse = this.fuseLabels[i];
@@ -551,16 +625,31 @@ export class GameScene {
       bullet.visible = !!p;
       if (!p) return;
       bullet.position.set(p.x, WORLD_HEIGHT - p.y, 6);
-      bullet.material.map =
-        this.weapons[p.kind === "fragment" ? "cluster" : p.kind];
+      bullet.material.map = this.ammunition[p.kind];
       bullet.scale.set(
         p.kind === "rocket" ? 24 : p.kind === "fragment" ? 12 : 20,
         p.kind === "rocket" ? 11 : 15,
         1,
       );
       bullet.material.rotation = -Math.atan2(p.vy, p.vx);
-      if (playing && game.ticks % 4 === 0 && this.particles.length < 240)
+      if (emitTrail && !p.resting && this.particles.length < 240)
         this.burst(p.x, p.y, 1, 2, "#e4e1cf");
+    });
+    this.rings = this.rings.filter((ring) => {
+      ring.life -= dt;
+      if (ring.life <= 0) {
+        this.scene.remove(ring.line);
+        ring.line.geometry.dispose();
+        (ring.line.material as THREE.Material).dispose();
+        return false;
+      }
+      const size =
+        ring.radius *
+        (this.reducedMotion ? 1 : 0.55 + 0.45 * (1 - ring.life / 0.26));
+      ring.line.scale.set(size, size, 1);
+      (ring.line.material as THREE.LineBasicMaterial).opacity =
+        (ring.life / 0.26) * 0.65;
+      return true;
     });
     this.tracers = this.tracers.filter((tracer) => {
       tracer.life -= dt;
@@ -580,7 +669,9 @@ export class GameScene {
       wave.push(
         new THREE.Vector3(
           x,
-          WORLD_HEIGHT - game.water + Math.sin(x * 0.027 + time * 0.0015) * 2,
+          WORLD_HEIGHT -
+            game.water +
+            Math.sin(x * 0.027 + (this.reducedMotion ? 0 : time * 0.0015)) * 2,
           6,
         ),
       );
@@ -630,6 +721,7 @@ export class GameScene {
       }
     });
     this.fuseLabels.forEach((label) => label.remove());
+    Object.values(this.ammunition).forEach((t) => t.dispose());
     this.wormTextures.forEach((t) => t.dispose());
     Object.values(this.weapons).forEach((t) => t.dispose());
     this.puff.dispose();

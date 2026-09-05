@@ -536,3 +536,68 @@ export function puffArt(): HTMLCanvasElement {
   c.fillRect(0, 0, 64, 64);
   return el;
 }
+
+/** Flight sprites are separate from the equipment illustrations in the dock. */
+export function projectileArt(kind: string): HTMLCanvasElement {
+  const [el, c] = canvas(64, 32);
+  c.lineWidth = 2;
+  c.lineJoin = "round";
+  c.strokeStyle = "#24353a";
+  if (kind === "rocket" || kind === "mortar" || kind === "airstrike") {
+    c.fillStyle = kind === "rocket" ? "#d8d6a0" : "#d7ad76";
+    c.beginPath();
+    c.moveTo(15, 9);
+    c.lineTo(41, 9);
+    c.quadraticCurveTo(53, 10, 57, 16);
+    c.quadraticCurveTo(52, 22, 41, 23);
+    c.lineTo(15, 23);
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#73956d";
+    for (const y of [7, 25]) {
+      c.beginPath();
+      c.moveTo(12, y);
+      c.lineTo(26, 16);
+      c.lineTo(15, 16);
+      c.closePath();
+      c.fill();
+      c.stroke();
+    }
+    c.strokeStyle = "#fff4c9";
+    c.beginPath();
+    c.moveTo(27, 12);
+    c.lineTo(43, 12);
+    c.stroke();
+  } else if (kind === "dynamite") {
+    c.fillStyle = "#dc836a";
+    c.fillRect(23, 8, 22, 17);
+    c.strokeRect(23, 8, 22, 17);
+    c.strokeStyle = "#f4d892";
+    c.beginPath();
+    c.moveTo(42, 8);
+    c.quadraticCurveTo(46, 1, 52, 5);
+    c.stroke();
+    c.fillStyle = "#e9d3a4";
+    c.fillRect(29, 8, 4, 17);
+  } else {
+    c.fillStyle =
+      kind === "fragment"
+        ? "#d4ac81"
+        : kind === "cluster"
+          ? "#b99cc9"
+          : "#aec58a";
+    c.beginPath();
+    c.ellipse(33, 18, kind === "fragment" ? 8 : 12, 11, -0.2, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#6c8867";
+    c.fillRect(28, 4, 11, 5);
+    c.strokeStyle = "#f2edbf";
+    c.beginPath();
+    c.moveTo(27, 13);
+    c.lineTo(34, 10);
+    c.stroke();
+  }
+  return el;
+}

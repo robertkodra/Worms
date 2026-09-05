@@ -15,6 +15,7 @@ export class AudioBus {
   private buffers = new Map<string, Promise<AudioBuffer>>();
   private utterance: SpeechSynthesisUtterance | null = null;
   private lastStep = 0;
+  private lastBounce = -1;
   private chatterTimers: ReturnType<typeof setTimeout>[] = [];
   private synth =
     typeof window !== "undefined" && "speechSynthesis" in window
@@ -247,9 +248,22 @@ export class AudioBus {
       this.tone(pitch, 0.105, "sine", pitch * 2.1, 0.23);
       this.tone(pitch * 2.5, 0.075, "triangle", pitch * 0.8, 0.07);
       this.noise(0.035, 430);
+    } else if (e.type === "bounce") {
+      const now = this.ctx?.currentTime ?? 0;
+      if (now - this.lastBounce < 0.065) return;
+      this.lastBounce = now;
+      const strength = Math.min(1, (e.value ?? 80) / 250);
+      this.tone(
+        210 + strength * 100,
+        0.07,
+        "triangle",
+        90,
+        0.06 + strength * 0.16,
+      );
     } else if (e.type === "land") {
-      this.noise(0.085, 360);
-      this.tone(115, 0.11, "sine", 60, 0.2);
+      const strength = Math.min(1, (e.value ?? 100) / 300);
+      this.noise(0.045 + strength * 0.06, 360);
+      this.tone(115, 0.11, "sine", 60, 0.08 + strength * 0.2);
     } else if (e.type === "teleport") {
       this.tone(260, 0.4, "sine", 1200, 0.18);
       this.tone(395, 0.3, "triangle", 790, 0.08);

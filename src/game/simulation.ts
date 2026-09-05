@@ -11,6 +11,7 @@ export const STEP = 1 / 60;
 export const GRAVITY = 390;
 export const TURN_TICKS = 45 * 60;
 export const RETREAT_TICKS = 5 * 60;
+export const WALKABLE_NORMAL_Y = -0.68; // approximately 47 degrees
 export const TEAM_NAMES = ["The Root Crew", "The Night Shift"];
 export { WEAPONS, WEAPON_IDS } from "./weapons";
 export type { Weapon } from "./weapons";
@@ -155,12 +156,15 @@ export function advanceProjectile(
   worms: Worm[],
   wind: number,
   water: number,
+  events?: GameEvent[],
 ): ShotResult | null {
   p.age++;
   const profile = BALLISTICS[p.kind];
   if (profile.fuse) p.fuse--;
-  if (p.resting && !terrain.circleCollides(p.x, p.y + 1.5, 3.2))
-    p.resting = false;
+  if (p.resting) {
+    const support = terrain.circleContact(p.x, p.y + 0.6, 3.2);
+    if (!support || support.y > -0.85) p.resting = false;
+  }
   if (!p.resting) {
     p.vx += wind * profile.wind * STEP;
     p.vy += GRAVITY * STEP;
@@ -176,7 +180,7 @@ export function advanceProjectile(
         ny = p.y + sy;
       const owner = worms.find((w) => w.id === p.owner);
       if (owner && distanceToWorm(nx, ny, owner) > 5) p.clearedOwner = true;
-      const hitWorm = worms.some(
+      const hitWorm = worms.find(
         (w) =>
           w.hp > 0 &&
           (w.id !== p.owner || p.clearedOwner) &&
@@ -185,19 +189,39 @@ export function advanceProjectile(
       const hitTerrain = terrain.circleCollides(nx, ny, 3.2);
       if (hitWorm || hitTerrain) {
         if (!profile.bounce) return { x: nx, y: ny, hit: true, ticks: p.age };
-        const hitX = terrain.circleCollides(nx, p.y, 3.2);
-        const hitY = terrain.circleCollides(p.x, ny, 3.2);
-        if (hitX && !hitY) {
-          p.vx *= -0.52;
-          p.vy *= 0.78;
-        } else {
-          p.vy *= -0.48;
-          p.vx *= 0.7;
+        let normal: { x: number; y: number } | null;
+        if (hitWorm) {
+          const cy = clamp(ny, hitWorm.y - 19, hitWorm.y - 9);
+          const length = Math.hypot(nx - hitWorm.x, ny - cy);
+          normal =
+            length > 0.001
+              ? { x: (nx - hitWorm.x) / length, y: (ny - cy) / length }
+              : null;
+        } else normal = terrain.circleContact(nx, ny, 3.2);
+        const speed = Math.hypot(p.vx, p.vy);
+        normal ??=
+          speed > 0 ? { x: -p.vx / speed, y: -p.vy / speed } : { x: 0, y: -1 };
+        const inward = p.vx * normal.x + p.vy * normal.y;
+        if (inward < 0) {
+          const tangentX = p.vx - inward * normal.x,
+            tangentY = p.vy - inward * normal.y;
+          p.vx = tangentX * 0.82 - inward * normal.x * 0.5;
+          p.vy = tangentY * 0.82 - inward * normal.y * 0.5;
+          if (-inward > 28)
+            events?.push({ type: "bounce", x: p.x, y: p.y, value: -inward });
         }
-        if (
-          Math.abs(p.vy) < 24 &&
-          terrain.circleCollides(p.x, p.y + 1.5, 3.2)
-        ) {
+        // Leave a small separation after contact. Without it a shallow
+        // impact can re-hit the same boundary before any tangential travel.
+        const separatedX = p.x + normal.x * 0.15;
+        const separatedY = p.y + normal.y * 0.15;
+        if (!terrain.circleCollides(separatedX, separatedY, 3.2)) {
+          p.x = separatedX;
+          p.y = separatedY;
+        }
+        const support = hitTerrain
+          ? terrain.circleContact(p.x, p.y + 0.6, 3.2)
+          : null;
+        if (Math.hypot(p.vx, p.vy) < 22 && support && support.y < -0.85) {
           p.vy = 0;
           p.vx = 0;
           p.resting = true;
@@ -622,6 +646,9 @@ export class Game {
         this.damage(other, 15);
         other.vx = facing * 230;
         other.vy = -135;
+        other.fallStart = other.grounded
+          ? other.y
+          : Math.min(other.fallStart, other.y);
         other.grounded = false;
       }
       this.events.push({
@@ -681,10 +708,19 @@ export class Game {
       if (d < radius + 34) {
         const strength = 1 - d / (radius + 34);
         this.damage(w, damage * strength);
-        w.vx += (w.x < x ? -1 : 1) * 245 * strength;
-        w.vy = -Math.max(85, 215 * strength);
-        w.grounded = false;
-        w.fallStart = w.y;
+        // Add outward momentum. The small upward bias helps grounded worms
+        // clear the lip, while overhead blasts still push down, away from them.
+        const dx = w.x - x,
+          dy = w.y - 14 - y;
+        const nx = d > 0.001 ? dx / d : 0;
+        const ny = d > 0.001 ? dy / d : -1;
+        const impulse = 245 * strength;
+        w.vx += nx * impulse;
+        w.vy += ny * impulse - 65 * strength;
+        if (strength > 0.02) {
+          w.fallStart = w.grounded ? w.y : Math.min(w.fallStart, w.y);
+          w.grounded = false;
+        }
       }
     }
     this.terrain.carve(x, y, radius);
@@ -706,62 +742,104 @@ export class Game {
   advanceWorm(w: Worm): void {
     if (w.hp <= 0) return;
     w.hurt = Math.max(0, w.hurt - STEP);
-    if (w.grounded && !this.terrain.bodyCollides(w.x, w.y + 1.2)) {
+    const supported = (x: number, y: number) => {
+      const contact = this.terrain.bodyContact(x, y);
+      return !!contact && contact.y <= WALKABLE_NORMAL_Y;
+    };
+    if (w.grounded && !supported(w.x, w.y)) {
       w.grounded = false;
       w.fallStart = w.y;
     }
-    if (!w.grounded) w.vy += GRAVITY * STEP;
-    const dx = w.vx * STEP,
-      dy = w.vy * STEP;
+    if (!w.grounded) {
+      w.fallStart = Math.min(w.fallStart, w.y);
+      w.vy += GRAVITY * STEP;
+    }
     const steps = Math.max(
       1,
-      Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 0.8),
+      Math.ceil((Math.max(Math.abs(w.vx), Math.abs(w.vy)) * STEP) / 0.8),
     );
+    const slice = STEP / steps;
+    let climbed = 0;
     for (let i = 0; i < steps; i++) {
-      const nx = w.x + dx / steps;
+      // Recompute each slice after collision response: a stopped velocity must
+      // not keep applying its old displacement during the rest of the tick.
+      const nx = w.x + w.vx * slice;
       if (!this.terrain.bodyCollides(nx, w.y)) w.x = nx;
       else if (w.grounded) {
         let stepped = false;
-        for (let up = 1; up <= 5; up++)
-          if (!this.terrain.bodyCollides(nx, w.y - up)) {
+        for (let up = 1; up <= 3 - climbed; up++) {
+          if (
+            !this.terrain.bodyCollides(nx, w.y - up) &&
+            supported(nx, w.y - up)
+          ) {
             w.x = nx;
             w.y -= up;
+            climbed += up;
             stepped = true;
             break;
           }
+        }
         if (!stepped) w.vx = 0;
       } else w.vx = 0;
-      const ny = w.y + dy / steps;
+      const ny = w.y + w.vy * slice;
       if (!this.terrain.bodyCollides(w.x, ny)) w.y = ny;
       else if (w.vy > 0) {
-        const fall = w.y - w.fallStart;
-        if (!w.grounded && w.vy > 55)
-          this.events.push({ type: "land", x: w.x, y: w.y, actor: w.id });
-        if (!w.grounded && fall > 115) this.damage(w, (fall - 115) * 0.16);
-        w.grounded = true;
-        w.vy = 0;
-        w.vx *= 0.45;
-        w.fallStart = w.y;
-        break;
+        const contact = this.terrain.bodyContact(w.x, ny);
+        if (contact && contact.y <= WALKABLE_NORMAL_Y) {
+          const fall = w.y - w.fallStart;
+          if (!w.grounded && w.vy > 55)
+            this.events.push({
+              type: "land",
+              x: w.x,
+              y: w.y,
+              actor: w.id,
+              value: w.vy,
+            });
+          if (!w.grounded && fall > 115) this.damage(w, (fall - 115) * 0.16);
+          w.grounded = true;
+          w.vy = 0;
+          w.vx *= 0.45;
+          w.fallStart = w.y;
+          break;
+        }
+        // A crater wall is a slope to slide down, not a floor to stand on.
+        w.grounded = false;
+        if (contact) {
+          const inward = w.vx * contact.x + w.vy * contact.y;
+          if (inward < 0) {
+            w.vx -= inward * contact.x;
+            w.vy -= inward * contact.y;
+          }
+          const slideX = w.x + w.vx * slice,
+            slideY = w.y + w.vy * slice;
+          if (!this.terrain.bodyCollides(slideX, slideY)) {
+            w.x = slideX;
+            w.y = slideY;
+          } else if (!this.terrain.bodyCollides(slideX, w.y)) w.x = slideX;
+        }
       } else {
         w.vy = 0;
         break;
       }
     }
     if (w.grounded) {
-      // Small downhill snap keeps inching attached to gentle slopes.
       for (
         let down = 0;
-        down < 4 && !this.terrain.bodyCollides(w.x, w.y + 1);
+        down < 3 && !this.terrain.bodyCollides(w.x, w.y + 1);
         down++
       )
         w.y += 1;
-      const beforeStep = Math.floor(w.walk / 17);
-      w.walk += Math.abs(w.vx) * STEP;
-      if (Math.floor(w.walk / 17) !== beforeStep)
-        this.events.push({ type: "step", x: w.x, y: w.y, actor: w.id });
-      w.vx *= 0.65;
-    }
+      if (!supported(w.x, w.y)) {
+        w.grounded = false;
+        w.fallStart = w.y;
+      } else {
+        const beforeStep = Math.floor(w.walk / 17);
+        w.walk += Math.abs(w.vx) * STEP;
+        if (Math.floor(w.walk / 17) !== beforeStep)
+          this.events.push({ type: "step", x: w.x, y: w.y, actor: w.id });
+        w.vx *= 0.65;
+      }
+    } else w.fallStart = Math.min(w.fallStart, w.y);
     if (w.y - 6 > this.water || w.x < -30 || w.x > WORLD_WIDTH + 30)
       this.damage(w, w.hp);
   }
@@ -783,6 +861,7 @@ export class Game {
         this.worms,
         this.wind,
         this.water,
+        this.events,
       );
       if (!hit) this.projectiles.push(p);
       else if (hit.hit) {

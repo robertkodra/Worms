@@ -221,6 +221,70 @@ export class Terrain {
     return false;
   }
 
+  /** Weighted contact normals average the pixel stair-steps into a surface.
+   * A skin samples nearby contact without changing the collision boundary. */
+  // Ground classification samples only the lower cap. A nearby ceiling or
+  // upper-body wall must not cancel a valid floor contact.
+  bodyContact(
+    cx: number,
+    feet: number,
+    skin = 1.2,
+  ): { x: number; y: number } | null {
+    const radius = WORM_RADIUS + skin;
+    let normalX = 0,
+      normalY = 0;
+    for (
+      let y = Math.floor(feet - WORM_RADIUS);
+      y <= Math.ceil(feet + skin);
+      y++
+    )
+      for (let x = Math.floor(cx - radius); x <= Math.ceil(cx + radius); x++) {
+        if (!this.solid(x, y)) continue;
+        const py = y + 0.5;
+        const closestY = Math.max(
+          feet - WORM_HEIGHT + WORM_RADIUS,
+          Math.min(feet - WORM_RADIUS, py),
+        );
+        const dx = cx - (x + 0.5),
+          dy = closestY - py;
+        const distance = Math.hypot(dx, dy);
+        if (distance >= radius || distance < 0.0001) continue;
+        const weight = radius - distance;
+        normalX += (dx / distance) * weight;
+        normalY += (dy / distance) * weight;
+      }
+    const length = Math.hypot(normalX, normalY);
+    return length > 0.0001
+      ? { x: normalX / length, y: normalY / length }
+      : null;
+  }
+
+  circleContact(
+    cx: number,
+    cy: number,
+    radius: number,
+    skin = 0.7,
+  ): { x: number; y: number } | null {
+    const reach = radius + skin;
+    let normalX = 0,
+      normalY = 0;
+    for (let y = Math.floor(cy - reach); y <= Math.ceil(cy + reach); y++)
+      for (let x = Math.floor(cx - reach); x <= Math.ceil(cx + reach); x++) {
+        if (!this.solid(x, y)) continue;
+        const dx = cx - Math.max(x, Math.min(cx, x + 1));
+        const dy = cy - Math.max(y, Math.min(cy, y + 1));
+        const distance = Math.hypot(dx, dy);
+        if (distance >= reach || distance < 0.0001) continue;
+        const weight = reach - distance;
+        normalX += (dx / distance) * weight;
+        normalY += (dy / distance) * weight;
+      }
+    const length = Math.hypot(normalX, normalY);
+    return length > 0.0001
+      ? { x: normalX / length, y: normalY / length }
+      : null;
+  }
+
   bodyCollides(cx: number, feet: number): boolean {
     // Capsule = two radius-9 circles and the rectangle between their centers.
     for (let y = Math.floor(feet - WORM_HEIGHT); y < Math.ceil(feet); y++) {

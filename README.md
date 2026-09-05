@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Physics update](docs/PHYSICS.md) — crater-edge and grenade fixes, impact effects and next improvements.
 - [Current release record](docs/RELEASE.md) — implemented features, evidence and remaining launch gates.
 - [Scope of work](docs/SCOPE.md) — experience, deliverables, boundaries, and acceptance criteria.
 - [Game design](docs/GAME_DESIGN.md) — rules, movement, weapons, personality, and interface.
