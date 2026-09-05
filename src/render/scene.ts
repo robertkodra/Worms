@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Game, Weapon, GameEvent, clamp } from "../game/simulation";
+import { WEAPON_IDS, WEAPONS } from "../game/weapons";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../game/terrain";
 import {
   skyArt,
@@ -52,7 +53,8 @@ export class GameScene {
   private labels: HTMLDivElement[] = [];
   private weapons: Record<Weapon, THREE.CanvasTexture>;
   private held: THREE.Mesh;
-  private bullet: THREE.Sprite;
+  private bullets: THREE.Sprite[] = [];
+  private tracers: { line: THREE.Line; life: number }[] = [];
   private water: THREE.Mesh;
   private waterEdge: THREE.Line;
   private aim: THREE.Line;
@@ -101,7 +103,7 @@ export class GameScene {
       texture(wormArt(0, true)),
       texture(wormArt(1, true)),
     ];
-    const kinds: Weapon[] = ["rocket", "grenade", "shove", "bridge"];
+    const kinds = WEAPON_IDS;
     this.weapons = Object.fromEntries(
       kinds.map((k) => [k, texture(weaponArt(k))]),
     ) as Record<Weapon, THREE.CanvasTexture>;
@@ -131,12 +133,19 @@ export class GameScene {
     this.held = this.plane(this.weapons.rocket, 45, 20);
     this.held.renderOrder = 6;
     this.scene.add(this.held);
-    this.bullet = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: this.weapons.grenade, depthTest: false }),
-    );
-    this.bullet.scale.set(16, 10, 1);
-    this.bullet.renderOrder = 8;
-    this.scene.add(this.bullet);
+    for (let i = 0; i < 12; i++) {
+      const bullet = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: this.weapons.grenade,
+          depthTest: false,
+        }),
+      );
+      bullet.scale.set(16, 10, 1);
+      bullet.renderOrder = 8;
+      bullet.visible = false;
+      this.bullets.push(bullet);
+      this.scene.add(bullet);
+    }
     this.water = new THREE.Mesh(
       new THREE.PlaneGeometry(3000, 1000),
       new THREE.MeshBasicMaterial({
@@ -269,6 +278,12 @@ export class GameScene {
     this.particles = [];
     for (const f of this.floats) f.el.remove();
     this.floats = [];
+    for (const tracer of this.tracers) {
+      this.scene.remove(tracer.line);
+      tracer.line.geometry.dispose();
+      (tracer.line.material as THREE.Material).dispose();
+    }
+    this.tracers = [];
   }
 
   event(event: GameEvent): void {
@@ -280,10 +295,31 @@ export class GameScene {
     if (event.type === "bridge")
       this.burst(event.x, event.y, 12, 15, "#c5dd92");
     if (event.type === "death") this.burst(event.x, event.y, 18, 24, "#cae7cf");
-    if (event.type === "damage") {
+    if (event.type === "teleport")
+      this.burst(event.x, event.y, 35, 35, "#a7dbe6");
+    if (event.type === "heal") this.burst(event.x, event.y, 18, 22, "#b7e6a4");
+    if (event.type === "tracer") {
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(event.x, WORLD_HEIGHT - event.y, 7),
+          new THREE.Vector3(event.endX!, WORLD_HEIGHT - event.endY!, 7),
+        ]),
+        new THREE.LineBasicMaterial({
+          color: event.weapon === "sniper" ? "#bbecff" : "#ffdd94",
+          transparent: true,
+          opacity: 0.95,
+          depthTest: false,
+        }),
+      );
+      line.renderOrder = 8;
+      this.scene.add(line);
+      this.tracers.push({ line, life: 0.24 });
+    }
+    if (event.type === "damage" || event.type === "heal") {
       const el = document.createElement("div");
       el.className = "damage-float";
-      el.textContent = `−${event.value}`;
+      el.textContent = `${event.type === "heal" ? "+" : "−"}${event.value}`;
+      if (event.type === "heal") el.style.color = "#bcf3ad";
       this.labelLayer.append(el);
       this.floats.push({ el, x: event.x, y: event.y, life: 1.7 });
     }
@@ -406,7 +442,7 @@ export class GameScene {
       playing &&
       active.team === 0 &&
       game.phase === "aim" &&
-      weapon !== "bridge";
+      !["place", "self"].includes(WEAPONS[weapon].mode);
     if (this.aim.visible) {
       const points = [30, 70].map(
         (d) =>
@@ -424,28 +460,54 @@ export class GameScene {
       playing &&
       active.team === 0 &&
       game.phase === "aim" &&
-      weapon === "bridge";
+      WEAPONS[weapon].mode === "place";
     if (this.bridge.visible) {
-      this.bridge.position.set(target.x, WORLD_HEIGHT - target.y - 3.5, 5);
+      const landing =
+        weapon === "teleport" ? game.teleportLanding(target.x, target.y) : null;
+      this.bridge.position.set(
+        target.x,
+        WORLD_HEIGHT -
+          (landing?.y ?? target.y) -
+          (weapon === "teleport" ? -14 : 3.5),
+        5,
+      );
+      this.bridge.scale.set(
+        weapon === "bridge" ? 1 : weapon === "teleport" ? 0.28 : 2.1,
+        weapon === "bridge" ? 1 : weapon === "teleport" ? 4 : 0.6,
+        1,
+      );
       (this.bridge.material as THREE.MeshBasicMaterial).color.set(
-        game.canBridge(target.x, target.y).valid ? "#c5e8a4" : "#ff9187",
+        game.canPlace(weapon, target.x, target.y).valid ? "#c5e8a4" : "#ff9187",
       );
     }
-    this.bullet.visible = !!game.projectile;
-    if (game.projectile) {
-      const p = game.projectile;
-      this.bullet.position.set(p.x, WORLD_HEIGHT - p.y, 6);
-      this.bullet.material.map = this.weapons[p.kind];
-      this.bullet.scale.set(
-        p.kind === "rocket" ? 24 : 20,
+    this.bullets.forEach((bullet, i) => {
+      const p = game.projectiles[i];
+      bullet.visible = !!p;
+      if (!p) return;
+      bullet.position.set(p.x, WORLD_HEIGHT - p.y, 6);
+      bullet.material.map =
+        this.weapons[p.kind === "fragment" ? "cluster" : p.kind];
+      bullet.scale.set(
+        p.kind === "rocket" ? 24 : p.kind === "fragment" ? 12 : 20,
         p.kind === "rocket" ? 11 : 15,
         1,
       );
-      this.bullet.material.rotation = -Math.atan2(p.vy, p.vx);
-      if (game.ticks % 4 === 0 && this.particles.length < 240) {
+      bullet.material.rotation = -Math.atan2(p.vy, p.vx);
+      if (playing && game.ticks % 4 === 0 && this.particles.length < 240)
         this.burst(p.x, p.y, 1, 2, "#e4e1cf");
+    });
+    this.tracers = this.tracers.filter((tracer) => {
+      tracer.life -= dt;
+      if (tracer.life <= 0) {
+        this.scene.remove(tracer.line);
+        tracer.line.geometry.dispose();
+        (tracer.line.material as THREE.Material).dispose();
+        return false;
       }
-    }
+      (tracer.line.material as THREE.LineBasicMaterial).opacity =
+        tracer.life / 0.24;
+      return true;
+    });
     this.water.position.set(800, WORLD_HEIGHT - game.water - 500, 5);
     const wave: THREE.Vector3[] = [];
     for (let x = -400; x <= 2000; x += 16)

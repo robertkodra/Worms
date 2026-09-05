@@ -11,33 +11,16 @@ export const GRAVITY = 390;
 export const TURN_TICKS = 45 * 60;
 export const RETREAT_TICKS = 5 * 60;
 export const TEAM_NAMES = ["The Root Crew", "The Night Shift"];
-export type Weapon = "rocket" | "grenade" | "shove" | "bridge";
-export type Phase = "aim" | "retreat" | "settle" | "over";
-export const WEAPONS: Record<
+export { WEAPONS, WEAPON_IDS } from "./weapons";
+export type { Weapon } from "./weapons";
+import {
   Weapon,
-  { name: string; short: string; hint: string }
-> = {
-  rocket: {
-    name: "Seed Rocket",
-    short: "Rocket",
-    hint: "Wind catches it. Terrain regrets it.",
-  },
-  grenade: {
-    name: "Pebble Popper",
-    short: "Grenade",
-    hint: "A little bounce. A 3-second fuse.",
-  },
-  shove: {
-    name: "Spore Shove",
-    short: "Shove",
-    hint: "Get close. Give gravity a hand.",
-  },
-  bridge: {
-    name: "Leaf Bridge",
-    short: "Bridge",
-    hint: "Aim at clear space nearby to place a bridge.",
-  },
-};
+  ProjectileKind,
+  WEAPONS,
+  BALLISTICS,
+  createInventory,
+} from "./weapons";
+export type Phase = "aim" | "retreat" | "settle" | "over";
 export interface Worm {
   id: number;
   name: string;
@@ -58,7 +41,7 @@ export interface Projectile {
   y: number;
   vx: number;
   vy: number;
-  kind: "rocket" | "grenade";
+  kind: ProjectileKind;
   owner: number;
   age: number;
   fuse: number;
@@ -77,12 +60,21 @@ export interface GameEvent {
     | "turn"
     | "result"
     | "shove"
-    | "bounce";
+    | "bounce"
+    | "land"
+    | "step"
+    | "tracer"
+    | "teleport"
+    | "heal"
+    | "outcome";
   x: number;
   y: number;
   value?: number;
   actor?: number;
   weapon?: Weapon;
+  endX?: number;
+  endY?: number;
+  outcome?: "hit" | "miss" | "friendly" | "skip" | "utility" | "heal";
 }
 export interface ShotResult {
   x: number;
@@ -132,11 +124,11 @@ export function shoveTargets(game: Game, actor: Worm, facing: number): Worm[] {
 
 export function createProjectile(
   w: Worm,
-  weapon: "rocket" | "grenade",
+  weapon: ProjectileKind,
   angle: number,
   power: number,
 ): Projectile {
-  const speed = (weapon === "rocket" ? 700 : 535) * clamp(power, 0.14, 1);
+  const speed = BALLISTICS[weapon].speed * clamp(power, 0.14, 1);
   const cx = w.x,
     cy = w.y - 18;
   // Spawn at the body, then sweep outwards while ignoring only the owner.
@@ -149,7 +141,7 @@ export function createProjectile(
     kind: weapon,
     owner: w.id,
     age: 0,
-    fuse: 180,
+    fuse: BALLISTICS[weapon].fuse,
     resting: false,
     clearedOwner: false,
     trail: [],
@@ -164,9 +156,12 @@ export function advanceProjectile(
   water: number,
 ): ShotResult | null {
   p.age++;
-  if (p.kind === "grenade") p.fuse--;
+  const profile = BALLISTICS[p.kind];
+  if (profile.fuse) p.fuse--;
+  if (p.resting && !terrain.circleCollides(p.x, p.y + 1.5, 3.2))
+    p.resting = false;
   if (!p.resting) {
-    p.vx += (p.kind === "rocket" ? wind : wind * 0.2) * STEP;
+    p.vx += wind * profile.wind * STEP;
     p.vy += GRAVITY * STEP;
     const dx = p.vx * STEP,
       dy = p.vy * STEP;
@@ -188,8 +183,7 @@ export function advanceProjectile(
       );
       const hitTerrain = terrain.circleCollides(nx, ny, 3.2);
       if (hitWorm || hitTerrain) {
-        if (p.kind === "rocket")
-          return { x: nx, y: ny, hit: true, ticks: p.age };
+        if (!profile.bounce) return { x: nx, y: ny, hit: true, ticks: p.age };
         const hitX = terrain.circleCollides(nx, p.y, 3.2);
         const hitY = terrain.circleCollides(p.x, ny, 3.2);
         if (hitX && !hitY) {
@@ -213,7 +207,7 @@ export function advanceProjectile(
       p.y = ny;
     }
   }
-  if (p.fuse <= 0 && p.kind === "grenade")
+  if (p.fuse <= 0 && profile.fuse)
     return { x: p.x, y: p.y, hit: true, ticks: p.age };
   if (
     p.y > water + 15 ||
@@ -230,7 +224,15 @@ export class Game {
   terrain = new Terrain();
   worms: Worm[] = [];
   events: GameEvent[] = [];
-  projectile: Projectile | null = null;
+  projectiles: Projectile[] = [];
+  get projectile(): Projectile | null {
+    return this.projectiles[0] ?? null;
+  }
+  set projectile(p: Projectile | null) {
+    this.projectiles = p ? [p] : [];
+  }
+  private action: { actor: number; weapon?: Weapon; health: number[] } | null =
+    null;
   phase: Phase = "aim";
   ticks = 0;
   turnTicks = TURN_TICKS;
@@ -243,17 +245,14 @@ export class Game {
   wind = 0;
   water = INITIAL_WATER;
   stats = { shots: 0, damage: 0, craters: 0 };
-  inventory: Record<Weapon, number>[] = [
-    { rocket: -1, grenade: -1, shove: 3, bridge: 2 },
-    { rocket: -1, grenade: -1, shove: 3, bridge: 2 },
-  ];
+  inventory: Record<Weapon, number>[] = [createInventory(), createInventory()];
   readonly random: () => number;
 
   constructor(readonly seed = 41823) {
     this.random = seededRandom(seed + 7919);
     this.terrain.generate(seed);
     const names = ["Pip", "Miso", "Moss", "Grub"];
-    [265, 535, 1080, 1360].forEach((x, id) => {
+    this.terrain.spawnXs.forEach((x, id) => {
       let feet = this.terrain.surface(x) - 1;
       while (this.terrain.bodyCollides(x, feet)) feet--;
       this.worms.push({
@@ -330,6 +329,67 @@ export class Game {
     return { valid: true, reason: "Release to place your bridge." };
   }
 
+  teleportLanding(x: number, y: number): { x: number; y: number } | null {
+    if (
+      ![x, y].every(Number.isFinite) ||
+      x < 24 ||
+      x > WORLD_WIDTH - 24 ||
+      y < 25 ||
+      y >= this.water - 15
+    )
+      return null;
+    const feet = this.terrain.surface(x, Math.max(0, y - 24));
+    if (
+      Math.abs(feet - y) > 65 ||
+      feet > this.water - 25 ||
+      Math.hypot(x - this.active.x, feet - this.active.y) > 550
+    )
+      return null;
+    let landing = feet;
+    for (let up = 0; up < 7 && this.terrain.bodyCollides(x, landing); up++)
+      landing--;
+    if (
+      this.terrain.bodyCollides(x, landing) ||
+      !this.terrain.bodyCollides(x, landing + 1.2)
+    )
+      return null;
+    if (
+      this.worms.some(
+        (w) =>
+          w.hp > 0 &&
+          w.id !== this.activeId &&
+          Math.abs(w.x - x) < 23 &&
+          Math.abs(w.y - landing) < 32,
+      )
+    )
+      return null;
+    return { x, y: landing };
+  }
+
+  canPlace(
+    weapon: Weapon,
+    x: number,
+    y: number,
+  ): { valid: boolean; reason: string } {
+    if (![x, y].every(Number.isFinite))
+      return { valid: false, reason: "Choose a point on the battlefield." };
+    if (this.inventory[this.active.team][weapon] === 0)
+      return { valid: false, reason: "None left in the kit." };
+    if (weapon === "bridge") return this.canBridge(x, y);
+    if (weapon === "teleport")
+      return this.teleportLanding(x, y)
+        ? { valid: true, reason: "Release to blink to this ledge." }
+        : {
+            valid: false,
+            reason: "Pick clear, solid footing within 550 pixels.",
+          };
+    if (weapon === "airstrike")
+      return x > 20 && x < WORLD_WIDTH - 20 && y >= 0 && y < this.water
+        ? { valid: true, reason: "Release to rain five shells on this column." }
+        : { valid: false, reason: "Choose a column inside the battlefield." };
+    return { valid: false, reason: "This item does not use a landing point." };
+  }
+
   attack(
     weapon: Weapon,
     angle: number,
@@ -340,11 +400,92 @@ export class Game {
     if (
       this.phase !== "aim" ||
       w.hp <= 0 ||
+      !Object.hasOwn(WEAPONS, weapon) ||
       this.inventory[w.team][weapon] === 0
     )
       return false;
     if (![angle, power].every(Number.isFinite)) return false;
-    if (weapon === "bridge") {
+    if (WEAPONS[weapon].mode === "place") {
+      if (!target || !this.canPlace(weapon, target.x, target.y).valid)
+        return false;
+    }
+    if (weapon === "medkit" && w.hp >= 100) return false;
+    this.action = {
+      actor: w.id,
+      weapon,
+      health: this.worms.map((worm) => worm.hp),
+    };
+    if (weapon === "teleport") {
+      const landing = this.teleportLanding(target!.x, target!.y)!;
+      this.events.push({ type: "teleport", x: w.x, y: w.y - 14, actor: w.id });
+      w.x = landing.x;
+      w.y = landing.y;
+      w.vx = 0;
+      w.vy = 0;
+      w.grounded = true;
+      w.fallStart = w.y;
+      this.events.push({ type: "teleport", x: w.x, y: w.y - 14, actor: w.id });
+    } else if (weapon === "medkit") {
+      const healed = Math.min(35, 100 - w.hp);
+      w.hp += healed;
+      this.events.push({
+        type: "heal",
+        x: w.x,
+        y: w.y - 25,
+        value: healed,
+        actor: w.id,
+      });
+    } else if (weapon === "airstrike") {
+      for (let i = -2; i <= 2; i++) {
+        const p = createProjectile(w, "airstrike", Math.PI / 2, 1);
+        p.x = clamp(target!.x + i * 43, 8, WORLD_WIDTH - 8);
+        p.y = -80 - Math.abs(i) * 38;
+        p.vy = 145;
+        p.clearedOwner = true;
+        this.projectiles.push(p);
+      }
+      this.events.push({
+        type: "fire",
+        x: target!.x,
+        y: 40,
+        actor: w.id,
+        weapon,
+      });
+      this.stats.shots++;
+    } else if (weapon === "shotgun" || weapon === "sniper") {
+      w.facing = Math.cos(angle) < 0 ? -1 : 1;
+      const rays = traceWeapon(this, w, weapon, angle);
+      // Resolve all pellet hits against the same scene, so a lethal first pellet
+      // cannot let later pellets pass through a worm in the same shot.
+      const amounts = new Map<number, number>();
+      for (const ray of rays) {
+        if (ray.actor !== undefined)
+          amounts.set(ray.actor, (amounts.get(ray.actor) ?? 0) + ray.damage);
+        this.events.push({
+          type: "tracer",
+          x: w.x,
+          y: w.y - 18,
+          endX: ray.x,
+          endY: ray.y,
+          weapon,
+        });
+        if (ray.soil)
+          this.terrain.carve(ray.x, ray.y, weapon === "sniper" ? 5 : 3);
+      }
+      for (const [id, amount] of amounts)
+        this.damage(
+          this.worms.find((other) => other.id === id)!,
+          amount,
+        );
+      this.events.push({
+        type: "fire",
+        x: w.x,
+        y: w.y - 18,
+        actor: w.id,
+        weapon,
+      });
+      this.stats.shots++;
+    } else if (weapon === "bridge") {
       if (
         !target ||
         !Number.isFinite(target.x) ||
@@ -376,7 +517,12 @@ export class Game {
       });
     } else {
       w.facing = Math.cos(angle) < 0 ? -1 : 1;
-      this.projectile = createProjectile(w, weapon, angle, power);
+      this.projectile = createProjectile(
+        w,
+        weapon as ProjectileKind,
+        angle,
+        power,
+      );
       this.events.push({
         type: "fire",
         x: w.x,
@@ -410,8 +556,8 @@ export class Game {
     if (!w.hp) this.events.push({ type: "death", x: w.x, y: w.y, actor: w.id });
   }
 
-  explode(x: number, y: number, kind: "rocket" | "grenade"): void {
-    const radius = kind === "rocket" ? 61 : 69;
+  explode(x: number, y: number, kind: ProjectileKind): void {
+    const { radius, damage } = BALLISTICS[kind];
     // Prototype uses explicit radial damage, without soil occlusion. The same
     // policy is used in the planner; a later occlusion model needs new tuning.
     for (const w of this.worms) {
@@ -419,7 +565,7 @@ export class Game {
       const d = Math.hypot(w.x - x, w.y - 14 - y);
       if (d < radius + 34) {
         const strength = 1 - d / (radius + 34);
-        this.damage(w, (kind === "rocket" ? 56 : 62) * strength);
+        this.damage(w, damage * strength);
         w.vx += (w.x < x ? -1 : 1) * 245 * strength;
         w.vy = -Math.max(85, 215 * strength);
         w.grounded = false;
@@ -433,12 +579,16 @@ export class Game {
 
   endTurn(): void {
     if (this.phase !== "aim") return;
+    this.action ??= {
+      actor: this.activeId,
+      health: this.worms.map((w) => w.hp),
+    };
     this.turnTicks = 0;
     this.phase = "settle";
     this.settleTicks = 0;
   }
 
-  private advanceWorm(w: Worm): void {
+  advanceWorm(w: Worm): void {
     if (w.hp <= 0) return;
     w.hurt = Math.max(0, w.hurt - STEP);
     if (w.grounded && !this.terrain.bodyCollides(w.x, w.y + 1.2)) {
@@ -470,6 +620,8 @@ export class Game {
       if (!this.terrain.bodyCollides(w.x, ny)) w.y = ny;
       else if (w.vy > 0) {
         const fall = w.y - w.fallStart;
+        if (!w.grounded && w.vy > 55)
+          this.events.push({ type: "land", x: w.x, y: w.y, actor: w.id });
         if (!w.grounded && fall > 115) this.damage(w, (fall - 115) * 0.16);
         w.grounded = true;
         w.vy = 0;
@@ -489,7 +641,10 @@ export class Game {
         down++
       )
         w.y += 1;
+      const beforeStep = Math.floor(w.walk / 17);
       w.walk += Math.abs(w.vx) * STEP;
+      if (Math.floor(w.walk / 17) !== beforeStep)
+        this.events.push({ type: "step", x: w.x, y: w.y, actor: w.id });
       w.vx *= 0.65;
     }
     if (w.y - 6 > this.water || w.x < -30 || w.x > WORLD_WIDTH + 30)
@@ -500,8 +655,9 @@ export class Game {
     if (this.phase === "over") return;
     this.ticks++;
     for (const w of this.worms) this.advanceWorm(w);
-    if (this.projectile) {
-      const p = this.projectile;
+    const flying = this.projectiles;
+    this.projectiles = [];
+    for (const p of flying) {
       if (this.ticks % 3 === 0) {
         p.trail.push({ x: p.x, y: p.y });
         if (p.trail.length > 35) p.trail.shift();
@@ -513,9 +669,25 @@ export class Game {
         this.wind,
         this.water,
       );
-      if (hit) {
-        if (hit.hit) this.explode(hit.x, hit.y, p.kind);
-        this.projectile = null;
+      if (!hit) this.projectiles.push(p);
+      else if (hit.hit) {
+        this.explode(hit.x, hit.y, p.kind);
+        if (p.kind === "cluster") {
+          const owner = this.worms.find((w) => w.id === p.owner)!;
+          for (let i = 0; i < 5; i++) {
+            const fragment = createProjectile(
+              owner,
+              "fragment",
+              -Math.PI + 0.28 + i * 0.64,
+              1,
+            );
+            fragment.x = hit.x;
+            fragment.y = hit.y - 5;
+            fragment.clearedOwner = true;
+            fragment.fuse = 48 + i * 7;
+            this.projectiles.push(fragment);
+          }
+        }
       }
     }
     if (this.phase === "aim") {
@@ -531,7 +703,7 @@ export class Game {
         (w) => w.hp > 0 && (!w.grounded || Math.abs(w.vx) > 3),
       );
       if (
-        !this.projectile &&
+        !this.projectiles.length &&
         ((!moving && this.settleTicks > 30) || this.settleTicks > 240)
       )
         this.nextTurn();
@@ -539,6 +711,43 @@ export class Game {
   }
 
   private nextTurn(): void {
+    if (this.action) {
+      const action = this.action;
+      const actor = this.worms.find((w) => w.id === action.actor)!;
+      const enemyDamage = this.worms.reduce(
+        (sum, w, i) =>
+          sum +
+          (w.team !== actor.team ? Math.max(0, action.health[i] - w.hp) : 0),
+        0,
+      );
+      const friendlyDamage = this.worms.reduce(
+        (sum, w, i) =>
+          sum +
+          (w.team === actor.team ? Math.max(0, action.health[i] - w.hp) : 0),
+        0,
+      );
+      const outcome = !action.weapon
+        ? "skip"
+        : action.weapon === "medkit"
+          ? "heal"
+          : ["bridge", "teleport"].includes(action.weapon)
+            ? "utility"
+            : friendlyDamage > enemyDamage
+              ? "friendly"
+              : enemyDamage > 0
+                ? "hit"
+                : "miss";
+      this.events.push({
+        type: "outcome",
+        x: actor.x,
+        y: actor.y,
+        actor: actor.id,
+        weapon: action.weapon,
+        outcome,
+        value: enemyDamage,
+      });
+      this.action = null;
+    }
     const living = [0, 1].map((team) =>
       this.worms.filter((w) => w.team === team && w.hp > 0),
     );
@@ -572,11 +781,53 @@ export class Game {
   }
 }
 
+export interface TraceHit {
+  x: number;
+  y: number;
+  actor?: number;
+  soil: boolean;
+  damage: number;
+}
+export function traceWeapon(
+  game: Game,
+  actor: Worm,
+  weapon: "shotgun" | "sniper",
+  angle: number,
+): TraceHit[] {
+  const spread =
+    weapon === "shotgun" ? [-0.095, -0.0475, 0, 0.0475, 0.095] : [0];
+  const range = weapon === "shotgun" ? 310 : 1800;
+  return spread.map((offset) => {
+    const dx = Math.cos(angle + offset),
+      dy = Math.sin(angle + offset);
+    let x = actor.x,
+      y = actor.y - 18;
+    for (let d = 0.5; d <= range; d += 0.5) {
+      x = actor.x + dx * d;
+      y = actor.y - 18 + dy * d;
+      if (game.terrain.solid(x, y)) return { x, y, soil: true, damage: 0 };
+      const victim = game.worms.find(
+        (w) => w.id !== actor.id && w.hp > 0 && distanceToWorm(x, y, w) < 0,
+      );
+      if (victim)
+        return {
+          x,
+          y,
+          actor: victim.id,
+          soil: false,
+          damage: weapon === "sniper" ? 42 : 12 * (1 - (0.5 * d) / range),
+        };
+      if (x < 0 || x >= WORLD_WIDTH || y > game.water || y < -800) break;
+    }
+    return { x, y, soil: false, damage: 0 };
+  });
+}
+
 export function simulateShot(
   game: Game,
   angle: number,
   power: number,
-  weapon: "rocket" | "grenade",
+  weapon: ProjectileKind,
 ): ShotResult {
   const p = createProjectile(game.active, weapon, angle, power);
   for (let i = 0; i < 721; i++) {
@@ -619,21 +870,62 @@ export function* planShots(game: Game): Generator<ShotPlan, ShotPlan> {
         best = candidate;
     }
   }
+  if (actor.hp <= 55 && game.inventory[actor.team].medkit > 0) {
+    const healScore = actor.hp < 30 ? 70 : 30;
+    if (healScore > best.score)
+      best = { weapon: "medkit", angle: 0, power: 1, score: healScore };
+  }
+  for (const enemy of enemies) {
+    const angle = Math.atan2(enemy.y - actor.y, enemy.x - actor.x);
+    for (const weapon of ["sniper", "shotgun"] as const) {
+      if (!game.inventory[actor.team][weapon]) continue;
+      const score = traceWeapon(game, actor, weapon, angle).reduce(
+        (sum, ray) => {
+          const victim = game.worms.find((w) => w.id === ray.actor);
+          return (
+            sum +
+            (victim ? ray.damage * (victim.team === actor.team ? -1.8 : 1) : 0)
+          );
+        },
+        0,
+      );
+      if (score > best.score) best = { weapon, angle, power: 1, score };
+    }
+    if (
+      game.inventory[actor.team].airstrike > 0 &&
+      game.terrain.surface(enemy.x) >= enemy.y - 6
+    ) {
+      let score = 0;
+      for (const w of game.worms)
+        if (w.hp > 0 && Math.abs(w.x - enemy.x) < 115)
+          score +=
+            Math.max(0, 45 - Math.abs(w.x - enemy.x) * 0.25) *
+            (w.team === actor.team ? -2 : 1);
+      if (score > best.score)
+        best = {
+          weapon: "airstrike",
+          angle: 0,
+          power: 1,
+          score,
+          target: { x: enemy.x, y: enemy.y - 12 },
+        };
+    }
+  }
   // Search both directions, including banked grenades, under a fixed budget.
-  for (const weapon of ["rocket", "grenade"] as const) {
+  for (const weapon of ["rocket", "grenade", "mortar", "cluster"] as const) {
+    if (game.inventory[actor.team][weapon] === 0) continue;
     for (let degrees = -172; degrees <= -8; degrees += 8) {
       for (let power = 0.34; power <= 1.001; power += 0.11) {
         const angle = (degrees * Math.PI) / 180;
         const result = simulateShot(game, angle, power, weapon);
         let score = -4;
         if (result.hit) {
-          const radius = weapon === "rocket" ? 95 : 103;
+          const radius = BALLISTICS[weapon].radius + 34;
           for (const w of game.worms) {
             if (w.hp <= 0) continue;
             const distance = Math.hypot(w.x - result.x, w.y - 14 - result.y);
             const damage =
-              Math.max(0, 1 - distance / radius) *
-              (weapon === "rocket" ? 56 : 62);
+              Math.max(0, 1 - distance / radius) * BALLISTICS[weapon].damage;
             const value =
               damage +
               (damage >= w.hp ? 45 : 0) +

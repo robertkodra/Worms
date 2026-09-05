@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "status": "local-playable-prototype",
   "assets": [
     {
@@ -21,13 +21,13 @@
       "review": "terrain appearance and collision share occupancy"
     },
     {
-      "id": "four-items",
+      "id": "twelve-items",
       "kind": "procedural-2d-texture",
       "source": "src/render/art.ts",
       "origin": "original prototype artwork",
       "creator": "Project",
       "runtime": "Weapon and HUD textures",
-      "review": "four distinct item silhouettes"
+      "review": "12 distinct equipment icons and shared gameplay registry"
     },
     {
       "id": "effects",
@@ -36,16 +36,16 @@
       "origin": "original synthesis",
       "creator": "Project",
       "runtime": "Web Audio oscillators and noise",
-      "review": "user-gesture audio start and mute control"
+      "review": "User-gesture start, movement/landing/weapon effects, mute and pause cancellation"
     },
     {
       "id": "banter",
       "kind": "text",
-      "source": "src/main.ts",
+      "source": "src/banter.ts",
       "origin": "original writing",
       "creator": "Project",
-      "runtime": "Contextual captions",
-      "review": "no copied dialogue or recorded voice"
+      "runtime": "Outcome-driven captions and bundled spoken clips",
+      "review": "30 original lines; hit, miss, friendly-fire, utility, healing, skipped-turn and turn reactions"
     },
     {
       "id": "dm-sans",
@@ -62,6 +62,19 @@
       "source": "https://github.com/floriankarsten/space-grotesk",
       "license": "SIL Open Font License 1.1",
       "notice": "public/licenses/space-grotesk.txt"
+    },
+    {
+      "id": "spoken-quips",
+      "kind": "generated-voice-clips",
+      "source": "scripts/render_voices.py",
+      "origin": "Original dialogue synthesized with CMU Flite 2.2 kal voice",
+      "upstream": "https://github.com/festvox/flite/tree/v2.2",
+      "license": "Flite permissive collection and voice data terms; notices preserved",
+      "notice": "public/licenses/flite.txt",
+      "manifest": "public/audio/voices/manifest.json",
+      "runtime": "30 mono PCM WAV files, loaded from the same origin; pitch varies by worm",
+      "processing": "F0/timing controls and peak normalization; PCM-only headers",
+      "review": "Every clip matches the dialogue bank; browser decode/playback verified; no original Worms or operating-system voice recordings included"
     }
   ],
   "notes": [

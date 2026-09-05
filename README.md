@@ -2,7 +2,7 @@
 
 An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The proposed game uses Three.js to render a fully 2D illustrated world.
 
-**Status: a local 2-versus-2 prototype is playable.** It includes destructible terrain, four items, a computer opponent, original 2D texture art and procedural sound, and a full match/results/rematch flow.
+**Status: a local 2-versus-2 prototype is playable.** It includes destructible terrain, 12 weapons/tools in a searchable arsenal, four seeded map layouts, a computer opponent that moves and jumps, original 2D art, movement sounds, 30 spoken quips, and a full match/results/rematch flow.
 
 ## Play locally
 
@@ -25,8 +25,8 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 One player commands four characters against a challenging computer-controlled team of four. Short turns, wind, arcing projectiles, craters, caves, knockback, and well-timed banter create matches designed to last around 15–25 minutes. One fixed opponent difficulty; no account or game server required.
 
-The implemented prototype is smaller: a complete 2-versus-2 match on one terrain theme, with four core items, original character movement, and a basic fair opponent. Its purpose is to prove the feel before expanding the game.
+The implemented prototype is smaller: a complete 2-versus-2 match on one terrain theme, with 12 items, four generated layouts, original character movement, and a fixed tactical opponent. Its purpose is to prove the feel before expanding the game.
 
 ## Publication and reuse
 
-This is a public source and planning repository. A software license and separate original-asset terms have not yet been selected. Third-party font and Three.js notices are preserved in `public/licenses`; runtime asset provenance is recorded in `assets/manifests/prototype.json`.
+This is a public source and planning repository. A software license and separate original-asset terms have not yet been selected. Third-party font, Three.js, and Flite notices are preserved in `public/licenses`; runtime asset provenance is recorded in `assets/manifests/prototype.json`.

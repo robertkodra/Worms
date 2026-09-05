@@ -1,0 +1,187 @@
+{
+  "generator": "CMU Flite 2.2",
+  "voice": "kal",
+  "processing": "F0 mean205, deviation30, duration0.86; peak-normalized PCM",
+  "clips": [
+    {
+      "file": "turn-0.wav",
+      "text": "Right. Small steps.",
+      "seconds": 1.577,
+      "sha256": "ef7db3434f2350d54762056a118b869bf21e732fde7c03d3fad79b7ca91eb945"
+    },
+    {
+      "file": "turn-1.wav",
+      "text": "My turn to improve the view.",
+      "seconds": 1.348,
+      "sha256": "938ddecf5338fd6e77f49b2f67105a742a2b088ef27298b7d6f94f7a6918d9e8"
+    },
+    {
+      "file": "turn-2.wav",
+      "text": "All right, who moved the horizon?",
+      "seconds": 1.726,
+      "sha256": "bb4b693ee29e1782e7a10e624df7e42be5d8a5923a754677a658a19a15575a49"
+    },
+    {
+      "file": "turn-3.wav",
+      "text": "Confidence first. Accuracy later.",
+      "seconds": 2.294,
+      "sha256": "2b2cac8da339522d50975f75aabbb7ced8f05652a802dbe75f280bfeba4d9a63"
+    },
+    {
+      "file": "hit-0.wav",
+      "text": "Special delivery. No signature needed!",
+      "seconds": 2.423,
+      "sha256": "4ef8aaddfdbfe2b4c128cece66e78828eea02627c0871d12966272726346c98e"
+    },
+    {
+      "file": "hit-1.wav",
+      "text": "That was almost deliberate!",
+      "seconds": 1.435,
+      "sha256": "dc2f3db7e1b18e2c3a69b804c6c8f0b24888a6253e79b938a0da7d82fa6af4cc"
+    },
+    {
+      "file": "hit-2.wav",
+      "text": "You've got a little crater on you.",
+      "seconds": 1.587,
+      "sha256": "73ed7c6248d0ce6afa34d3e3e8b80f9969b3f9461e23c145bd3fea68dcb79827"
+    },
+    {
+      "file": "hit-3.wav",
+      "text": "Direct hit. Very indirect apology.",
+      "seconds": 2.244,
+      "sha256": "2f1c1ce2d74cc5dea3307cc91c95889fd67fb8a6b0f3ed425d2ab643ea9a180c"
+    },
+    {
+      "file": "hit-4.wav",
+      "text": "Oh good, the maths worked!",
+      "seconds": 1.718,
+      "sha256": "2fa81d0c8f8a2e5343d566ac1da8f3617aa89a5b322c314bcde164c9aa1bcf76"
+    },
+    {
+      "file": "hit-5.wav",
+      "text": "Consider yourself thoroughly gardened.",
+      "seconds": 1.863,
+      "sha256": "a1b2b7d3fcef191da0bd7f066d08637d16ee8a14f0eb1f0039de2bc995708a8b"
+    },
+    {
+      "file": "miss-0.wav",
+      "text": "Who put the target over there?",
+      "seconds": 1.382,
+      "sha256": "e8ace9be6a7e671d23505fffd24b8ac19d98dfc44e3641ed41a3c356b4ad9039"
+    },
+    {
+      "file": "miss-1.wav",
+      "text": "That was a warning. To the scenery.",
+      "seconds": 1.819,
+      "sha256": "a6b651cd99649a8ad93aa111624c29ed134910541d36eb1fc10269c76e80b609"
+    },
+    {
+      "file": "miss-2.wav",
+      "text": "I was aiming for next Thursday.",
+      "seconds": 1.78,
+      "sha256": "5524ebd9da111f63df54d9e603304e65d2eed23667a9ab87ea88efa77c917394"
+    },
+    {
+      "file": "miss-3.wav",
+      "text": "Wind. Definitely the wind.",
+      "seconds": 1.61,
+      "sha256": "32764f569fe0b7bc2e8aef7d8e213b8f6cb020a4cfb5437bf8c51c0240e42099"
+    },
+    {
+      "file": "miss-4.wav",
+      "text": "Excellent shot. Wrong postcode.",
+      "seconds": 2.03,
+      "sha256": "0e9ff271e4fd9eccf4f8256f3384e90e588f63dc7b575fbb0bb5db6ed5388bfd"
+    },
+    {
+      "file": "miss-5.wav",
+      "text": "Nobody saw that. Especially the target.",
+      "seconds": 2.424,
+      "sha256": "9bdd0d9a961d812d9d3910ce926fd4a5b1c9749774b0d2bf0fbc71709a4d04e6"
+    },
+    {
+      "file": "miss-6.wav",
+      "text": "Testing gravity. Still works!",
+      "seconds": 1.946,
+      "sha256": "7a0b1e724c393818f26baeed467aaa5d749d341f9fd063c489e5509f3a7bd906"
+    },
+    {
+      "file": "friendly-0.wav",
+      "text": "Same team! Check the scarf!",
+      "seconds": 2.035,
+      "sha256": "3cbf437317db802db136d380a73cb91f6e6b68fb0a234770bdb9751aa0fda5bc"
+    },
+    {
+      "file": "friendly-1.wav",
+      "text": "That apology is going to need a basket.",
+      "seconds": 2.084,
+      "sha256": "63905e6bf163f176d093919e8ba1451a40339a05c1834da70077e4b36b412ccd"
+    },
+    {
+      "file": "friendly-2.wav",
+      "text": "Friendly fire. Unfriendly review.",
+      "seconds": 1.882,
+      "sha256": "93ff3ecc7ee84be8fab466a59514b47b04389a3716ca16275b677be60df9df57"
+    },
+    {
+      "file": "friendly-3.wav",
+      "text": "I owe you a new hat.",
+      "seconds": 1.072,
+      "sha256": "c99604a5baec3eb6d22a26ce07f19ce00b3382b9364df3448a01bb20765f851d"
+    },
+    {
+      "file": "skip-0.wav",
+      "text": "A tactical pause. Very tactical.",
+      "seconds": 2.105,
+      "sha256": "be2fe4777b729a6641b66682f42d58b81261a2ed0998f7dff2adfdd9f701848d"
+    },
+    {
+      "file": "skip-1.wav",
+      "text": "I'll let the suspense do the damage.",
+      "seconds": 1.784,
+      "sha256": "10c85faaec73343afd5b28e84bca0a90070f8998d410fc36a70d8df30f9430a1"
+    },
+    {
+      "file": "skip-2.wav",
+      "text": "Just checking the soil.",
+      "seconds": 1.261,
+      "sha256": "4aea060daf9a99074267d6377c7ab0e1e6d1ab6d50fe90f38c8cbc10b2672554"
+    },
+    {
+      "file": "utility-0.wav",
+      "text": "Temporary confidence installed.",
+      "seconds": 1.673,
+      "sha256": "94fe063bbd48e1624320564f90ca0291512d870635e5b48f29c50790b3c97950"
+    },
+    {
+      "file": "utility-1.wav",
+      "text": "A small improvement to my situation.",
+      "seconds": 2.145,
+      "sha256": "90ec115202998fbc239ae22bcac9bd6f2ec1471adfa1ea073f12f128fa1eb9f7"
+    },
+    {
+      "file": "utility-2.wav",
+      "text": "Try reaching me now!",
+      "seconds": 1.192,
+      "sha256": "d6358676d9da58b801bb4054b1d243ed60346f94d6caabbbb0a84d08851249e3"
+    },
+    {
+      "file": "heal-0.wav",
+      "text": "A little compost. Good as new.",
+      "seconds": 1.74,
+      "sha256": "7ae7c98047e1319bf2ecae5cdbc6b281f6d9b8c28f3ba485da35135e1c1196f1"
+    },
+    {
+      "file": "heal-1.wav",
+      "text": "Medic! Oh wait, that's me.",
+      "seconds": 1.866,
+      "sha256": "71743249b9b1f3437ed7cf7a3daf245fd7d72a8d545ee566062d6bf9457ae7b7"
+    },
+    {
+      "file": "heal-2.wav",
+      "text": "Back in business. Slightly damp.",
+      "seconds": 2.049,
+      "sha256": "7df81ba5540edc089e6f32f6fa3159a0e9774697cdc551ebacf983af3f6e6422"
+    }
+  ]
+}

@@ -292,7 +292,137 @@ export function weaponArt(kind: string): HTMLCanvasElement {
   c.lineJoin = "round";
   c.strokeStyle = "#25343b";
   c.lineWidth = 4;
-  if (kind === "rocket") {
+  if (["shotgun", "sniper", "mortar"].includes(kind)) {
+    c.fillStyle =
+      kind === "sniper" ? "#99c9cf" : kind === "mortar" ? "#b7a474" : "#ad7d59";
+    c.beginPath();
+    c.roundRect(18, 22, kind === "sniper" ? 106 : 84, 18, 5);
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#3a4547";
+    c.fillRect(85, 20, 35, 12);
+    c.fillStyle = "#d6ba8b";
+    c.beginPath();
+    c.roundRect(47, 36, 17, 20, 4);
+    c.fill();
+    c.stroke();
+    if (kind === "sniper") {
+      c.fillStyle = "#405664";
+      c.beginPath();
+      c.roundRect(48, 8, 42, 10, 4);
+      c.fill();
+      c.stroke();
+    }
+    if (kind === "shotgun") {
+      c.fillStyle = "#344044";
+      c.fillRect(90, 32, 32, 8);
+    }
+    if (kind === "mortar") {
+      c.fillStyle = "#dcc992";
+      c.beginPath();
+      c.moveTo(40, 48);
+      c.lineTo(102, 48);
+      c.lineTo(76, 31);
+      c.closePath();
+      c.fill();
+      c.stroke();
+    }
+  } else if (kind === "cluster") {
+    for (const [x, y] of [
+      [51, 36],
+      [82, 35],
+      [67, 20],
+    ]) {
+      c.fillStyle = "#c79551";
+      c.beginPath();
+      c.arc(x, y, 15, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+      c.fillStyle = "#e6c889";
+      c.beginPath();
+      c.arc(x - 4, y - 5, 4, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.strokeStyle = "#ffe3a0";
+    c.beginPath();
+    c.moveTo(70, 7);
+    c.lineTo(83, 2);
+    c.stroke();
+  } else if (kind === "dynamite") {
+    for (let i = 0; i < 3; i++) {
+      c.fillStyle = ["#c56958", "#e68c70", "#b75a4b"][i];
+      c.beginPath();
+      c.roundRect(37 + i * 21, 12, 22, 43, 5);
+      c.fill();
+      c.stroke();
+    }
+    c.fillStyle = "#eed0a0";
+    c.fillRect(34, 27, 69, 9);
+    c.strokeStyle = "#f1d391";
+    c.beginPath();
+    c.moveTo(69, 11);
+    c.quadraticCurveTo(90, -3, 99, 8);
+    c.stroke();
+  } else if (kind === "airstrike") {
+    c.fillStyle = "#c4addb";
+    c.beginPath();
+    c.moveTo(18, 27);
+    c.lineTo(121, 27);
+    c.lineTo(81, 38);
+    c.lineTo(53, 38);
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#a8c47f";
+    for (let i = 0; i < 3; i++) {
+      c.beginPath();
+      c.ellipse(46 + i * 23, 49, 5, 8, -0.25, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+    }
+    c.fillStyle = "#ece0b5";
+    c.beginPath();
+    c.moveTo(51, 25);
+    c.lineTo(69, 8);
+    c.lineTo(83, 25);
+    c.fill();
+    c.stroke();
+  } else if (kind === "teleport") {
+    c.strokeStyle = "#a7dbe6";
+    c.lineWidth = 6;
+    c.beginPath();
+    c.ellipse(70, 32, 32, 23, -0.2, 0, Math.PI * 2);
+    c.stroke();
+    c.fillStyle = "#dfd3f0";
+    c.beginPath();
+    c.moveTo(73, 7);
+    c.lineTo(55, 34);
+    c.lineTo(70, 34);
+    c.lineTo(63, 57);
+    c.lineTo(87, 25);
+    c.lineTo(73, 26);
+    c.closePath();
+    c.fill();
+  } else if (kind === "medkit") {
+    c.fillStyle = "#efe0b5";
+    c.beginPath();
+    c.roundRect(32, 13, 76, 42, 8);
+    c.fill();
+    c.stroke();
+    c.strokeStyle = "#d28a77";
+    c.lineWidth = 9;
+    c.beginPath();
+    c.moveTo(70, 23);
+    c.lineTo(70, 44);
+    c.moveTo(59, 33);
+    c.lineTo(81, 33);
+    c.stroke();
+    c.strokeStyle = "#25343b";
+    c.lineWidth = 4;
+    c.beginPath();
+    c.roundRect(57, 5, 26, 8, 3);
+    c.stroke();
+  } else if (kind === "rocket") {
     c.fillStyle = "#9dab6c";
     c.beginPath();
     c.roundRect(16, 13, 104, 30, 7);

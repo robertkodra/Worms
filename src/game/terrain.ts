@@ -19,6 +19,8 @@ export class Terrain {
   readonly cells: Uint8Array;
   readonly tops: Int32Array;
   revision = 0;
+  layout = "Twin gardens";
+  spawnXs: number[] = [265, 535, 1080, 1360];
 
   constructor(
     readonly width = WORLD_WIDTH,
@@ -48,28 +50,80 @@ export class Terrain {
     this.cells.fill(0);
     this.tops.fill(this.height);
     const random = seededRandom(seed);
+    const variant = Math.abs(Math.floor(seed)) % 4;
+    this.layout = [
+      "Broken archipelago",
+      "Rolling ridgeline",
+      "Sunken valley",
+      "Garden mesas",
+    ][variant];
     const phase = random() * Math.PI * 2;
-    for (let x = 54; x < this.width - 54; x++) {
-      // Two substantial islands and a narrow central channel. Spawn shelves
-      // remain broad; caves are carved well below their supporting surfaces.
-      if (x > 776 && x < 824) continue;
-      const side = x < 800 ? 0 : 1;
-      const local = side === 0 ? x : this.width - x;
-      const edge = Math.max(0, (110 - local) * 0.9);
-      const top = Math.round(
-        510 +
-          49 * Math.sin(x * 0.005 + phase) +
-          24 * Math.sin(x * 0.013 + phase * 0.3) +
-          edge,
-      );
-      const bottom = 858 - Math.max(0, 100 - local) * 0.6;
+    const channel = 745 + Math.floor(random() * 110);
+    const gaps: [number, number][] =
+      variant === 0
+        ? [
+            [385 + random() * 50, 50 + random() * 35],
+            [790 + random() * 35, 55 + random() * 35],
+            [1180 + random() * 45, 45 + random() * 35],
+          ]
+        : variant === 3
+          ? [[channel, 65 + random() * 55]]
+          : [];
+    const base = 455 + random() * 65;
+    for (let x = 45; x < this.width - 45; x++) {
+      if (gaps.some(([center, width]) => Math.abs(x - center) < width / 2))
+        continue;
+      const edge = Math.max(0, 100 - Math.min(x, this.width - x)) * 0.8;
+      let top =
+        base +
+        36 * Math.sin(x * 0.006 + phase) +
+        18 * Math.sin(x * 0.016 + phase) +
+        edge;
+      if (variant === 1)
+        top +=
+          -125 *
+          Math.exp(-(((x - (650 + ((seed % 97) / 97) * 250)) / 330) ** 2));
+      if (variant === 2) top += 150 * Math.exp(-(((x - 800) / 320) ** 2));
+      if (variant === 3)
+        top += 42 * Math.sin(x * 0.009 + phase) + (x > channel ? -65 : 25);
+      top = Math.round(top);
       this.tops[x] = top;
-      for (let y = top; y < bottom; y++) this.cells[y * this.width + x] = 1;
+      for (let y = top; y < 862; y++) this.cells[y * this.width + x] = 1;
     }
-    this.carve(435, 685, 68, false);
-    this.carve(499, 695, 47, false);
-    this.carve(1180, 710, 77, false);
-    this.carve(1118, 725, 46, false);
+    // Deep seeded cave chains change underground routes without removing spawn support.
+    for (let i = 0; i < 5; i++) {
+      const x = 170 + random() * (this.width - 340);
+      const surface = this.surface(x);
+      if (surface > 710) continue;
+      const y = Math.min(755, surface + 135 + random() * 65);
+      const radius = 32 + random() * 33;
+      this.carve(x, y, radius, false);
+      if (random() > 0.4)
+        this.carve(x + radius * 0.9, y + 12, radius * 0.65, false);
+    }
+    // Find roomy, dry shelves in four separated bands; never spawn inside a gap.
+    this.spawnXs = [
+      [150, 340],
+      [485, 685],
+      [930, 1120],
+      [1290, 1450],
+    ].map(([lo, hi]) => {
+      const preferred = lo + random() * (hi - lo);
+      let best = (lo + hi) / 2,
+        score = Infinity;
+      for (let x = lo; x <= hi; x += 2) {
+        const y = this.surface(x);
+        const l = this.surface(x - 18),
+          r = this.surface(x + 18);
+        if (Math.max(y, l, r) > INITIAL_WATER - 110) continue;
+        const cost = Math.abs(x - preferred) * 0.12 + Math.abs(l - r);
+        if (cost < score) {
+          best = x;
+          score = cost;
+        }
+      }
+      return best;
+    });
     this.revision++;
   }
 

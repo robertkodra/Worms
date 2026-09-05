@@ -2,6 +2,10 @@
 
 Status: the first local 2-versus-2 prototype is implemented; see [the prototype guide](../docs/PROTOTYPE.md) for measured evidence and remaining limits. P0 is complete. P1/P2 have an initial playable implementation and await hands-on feel feedback; later milestones remain planned. The scope is governed by [SCOPE.md](../docs/SCOPE.md). Milestones close on observable results, not on an assumed calendar duration.
 
+## Prototype 02 — Accepted playtest expansion
+
+The owner liked the initial 2D style and requested more sounds, funny outcome reactions, more weapons, varied maps, active AI, and an arsenal that can grow toward 40 items. This iteration implements 12 items, four seeded terrain layouts, short verified movement/jump routes, a searchable category-based equipment menu, 30 bundled original spoken quips, and richer effects. See the current prototype guide for validation and explicit limits. This advances parts of P3–P5; it does not close their 4v4, worker, balance or browser-matrix gates.
+
 ## P0 — Scope and repository
 
 Deliver the concept, game design, architecture, asset inventory, hosting recommendation, public repository guardrails, and a visual study. Record the fully 2D direction and single fixed computer difficulty. Review repository content before publication.
@@ -90,17 +94,17 @@ Exit: the public URL supports a full match and rematch, the source and media pas
 
 ## First implementation work queue
 
-| ID | Work | Depends on | Acceptance evidence |
-| --- | --- | --- | --- |
-| F01 | Reproducible toolchain and repository commands | Scope | Fresh install, typecheck, test, and build commands documented and working |
-| F02 | Simulation state and fixed tick | F01 | Seeded input fixture gives repeatable state within the supported runtime |
-| F03 | Terrain mask, carving, and renderer | F02 | Cave and overlapping-crater fixtures show matching visual/physical terrain |
-| F04 | Character movement and animation | F02, F03 | Walk/jump/land/slope fixtures plus visual feel review |
-| F05 | Projectile, wind, blast, and damage | F02, F03 | Fast projectile, bounce/fuse, radial damage, and knockback fixtures |
-| F06 | Input, camera, and HUD | F04, F05 | Player can aim and fire while understanding turn state |
-| F07 | Turns, elimination, and match end | F04, F05 | Complete human-controlled test match; simultaneous death handled |
-| F08 | Basic AI with fallback | F05, F07 | Computer completes a sequence of legal turns on test maps |
-| F09 | First playable package | F06, F07, F08 | Title-to-results-to-rematch 2-versus-2 session |
+| ID  | Work                                           | Depends on    | Acceptance evidence                                                        |
+| --- | ---------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| F01 | Reproducible toolchain and repository commands | Scope         | Fresh install, typecheck, test, and build commands documented and working  |
+| F02 | Simulation state and fixed tick                | F01           | Seeded input fixture gives repeatable state within the supported runtime   |
+| F03 | Terrain mask, carving, and renderer            | F02           | Cave and overlapping-crater fixtures show matching visual/physical terrain |
+| F04 | Character movement and animation               | F02, F03      | Walk/jump/land/slope fixtures plus visual feel review                      |
+| F05 | Projectile, wind, blast, and damage            | F02, F03      | Fast projectile, bounce/fuse, radial damage, and knockback fixtures        |
+| F06 | Input, camera, and HUD                         | F04, F05      | Player can aim and fire while understanding turn state                     |
+| F07 | Turns, elimination, and match end              | F04, F05      | Complete human-controlled test match; simultaneous death handled           |
+| F08 | Basic AI with fallback                         | F05, F07      | Computer completes a sequence of legal turns on test maps                  |
+| F09 | First playable package                         | F06, F07, F08 | Title-to-results-to-rematch 2-versus-2 session                             |
 
 ## Scheduling and change control
 

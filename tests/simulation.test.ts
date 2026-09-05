@@ -40,8 +40,8 @@ describe("terrain is the authoritative collision and destruction map", () => {
       expect(a.terrain.bodyCollides(w.x, w.y + 3)).toBe(true);
       expect(w.y).toBeLessThan(INITIAL_WATER - 100);
     }
-    expect(a.terrain.solid(435, 685)).toBe(false);
-    expect(a.terrain.solid(435, 605)).toBe(true);
+    expect(a.terrain.layout).toBe(b.terrain.layout);
+    expect(a.terrain.spawnXs).toEqual(b.terrain.spawnXs);
   });
   it("carves clipped circles, preserves untouched cells, and subtracts idempotently", () => {
     const t = new Terrain(100, 100);
