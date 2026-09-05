@@ -4,6 +4,7 @@ import {
   WORLD_HEIGHT,
   INITIAL_WATER,
   seededRandom,
+  RandomSource,
 } from "./terrain";
 
 export const STEP = 1 / 60;
@@ -220,6 +221,24 @@ export function advanceProjectile(
   return null;
 }
 
+export const DEFAULT_NAMES = [
+  ["Pip", "Miso", "Nori", "Sprout"],
+  ["Moss", "Grub", "Thistle", "Bramble"],
+];
+export interface GameOptions {
+  teamSize?: 2 | 4;
+  names?: string[][];
+  mode?: "skirmish" | "practice";
+}
+export function cleanName(name: string, fallback: string): string {
+  return (
+    name
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim()
+      .slice(0, 16) || fallback
+  );
+}
+
 export class Game {
   terrain = new Terrain();
   worms: Worm[] = [];
@@ -240,31 +259,53 @@ export class Game {
   settleTicks = 0;
   turn = 0;
   activeId = 0;
-  rotations = [0, 0];
+  rotations = [0, -1];
   winner: number | null = null;
   wind = 0;
   water = INITIAL_WATER;
   stats = { shots: 0, damage: 0, craters: 0 };
   inventory: Record<Weapon, number>[] = [createInventory(), createInventory()];
-  readonly random: () => number;
+  readonly random: RandomSource;
+  readonly teamSize: 2 | 4;
+  readonly mode: "skirmish" | "practice";
 
-  constructor(readonly seed = 41823) {
+  constructor(
+    readonly seed = 41823,
+    options: GameOptions = {},
+  ) {
+    this.teamSize = options.teamSize ?? 4;
+    this.mode = options.mode ?? "skirmish";
+    if (this.teamSize === 4) {
+      for (const inventory of this.inventory) {
+        inventory.medkit = 2;
+        inventory.shotgun = 6;
+        inventory.sniper = 4;
+      }
+    }
+    if (this.mode === "practice")
+      for (const inventory of this.inventory)
+        for (const key of Object.keys(inventory) as Weapon[])
+          inventory[key] = -1;
     this.random = seededRandom(seed + 7919);
-    this.terrain.generate(seed);
-    const names = ["Pip", "Miso", "Moss", "Grub"];
+    this.terrain.generate(seed, this.teamSize);
     this.terrain.spawnXs.forEach((x, id) => {
       let feet = this.terrain.surface(x) - 1;
       while (this.terrain.bodyCollides(x, feet)) feet--;
       this.worms.push({
         id,
-        name: names[id],
-        team: id < 2 ? 0 : 1,
+        name: cleanName(
+          options.names?.[Math.floor(id / this.teamSize)]?.[
+            id % this.teamSize
+          ] ?? "",
+          DEFAULT_NAMES[Math.floor(id / this.teamSize)][id % this.teamSize],
+        ),
+        team: id < this.teamSize ? 0 : 1,
         x,
         y: feet,
         vx: 0,
         vy: 0,
         hp: 100,
-        facing: id < 2 ? 1 : -1,
+        facing: id < this.teamSize ? 1 : -1,
         grounded: true,
         walk: 0,
         hurt: 0,
@@ -272,6 +313,80 @@ export class Game {
       });
     });
     this.wind = Math.round((this.random() - 0.5) * 64);
+  }
+
+  snapshot() {
+    return {
+      version: 1 as const,
+      seed: this.seed,
+      teamSize: this.teamSize,
+      mode: this.mode,
+      randomState: this.random.getState(),
+      terrain: {
+        cells: this.terrain.cells.slice(),
+        revision: this.terrain.revision,
+        layout: this.terrain.layout,
+        spawnXs: [...this.terrain.spawnXs],
+      },
+      worms: this.worms.map((w) => ({ ...w })),
+      projectiles: this.projectiles.map((p) => ({
+        ...p,
+        trail: p.trail.map((t) => ({ ...t })),
+      })),
+      action: this.action
+        ? { ...this.action, health: [...this.action.health] }
+        : null,
+      phase: this.phase,
+      ticks: this.ticks,
+      turnTicks: this.turnTicks,
+      retreatTicks: this.retreatTicks,
+      settleTicks: this.settleTicks,
+      turn: this.turn,
+      activeId: this.activeId,
+      rotations: [...this.rotations],
+      winner: this.winner,
+      wind: this.wind,
+      water: this.water,
+      stats: { ...this.stats },
+      inventory: this.inventory.map((i) => ({ ...i })),
+    };
+  }
+
+  // Callers at storage boundaries validate before restoring. Workers use only
+  // trusted snapshots created by snapshot(), with a copied terrain buffer.
+  static restore(snapshot: GameSnapshot): Game {
+    const game = new Game(snapshot.seed, {
+      teamSize: snapshot.teamSize,
+      mode: snapshot.mode,
+    });
+    const {
+      version: _version,
+      seed: _seed,
+      teamSize: _size,
+      mode: _mode,
+      randomState,
+      terrain,
+      ...state
+    } = snapshot;
+    Object.assign(game, structuredClone(state));
+    game.random.setState(randomState);
+    game.terrain.cells.set(terrain.cells);
+    game.terrain.tops.fill(game.terrain.height);
+    for (let y = 0; y < game.terrain.height; y++)
+      for (let x = 0; x < game.terrain.width; x++)
+        if (
+          terrain.cells[y * game.terrain.width + x] &&
+          game.terrain.tops[x] === game.terrain.height
+        )
+          game.terrain.tops[x] = y;
+    game.terrain.revision = terrain.revision;
+    game.terrain.layout = terrain.layout;
+    game.terrain.spawnXs = [...terrain.spawnXs];
+    return game;
+  }
+
+  get suddenDeathRound(): number {
+    return this.teamSize === 4 ? 16 : 10;
   }
 
   get active(): Worm {
@@ -691,7 +806,7 @@ export class Game {
       }
     }
     if (this.phase === "aim") {
-      this.turnTicks--;
+      if (this.mode !== "practice") this.turnTicks--;
       if (this.turnTicks <= 0 || this.active.hp <= 0) this.endTurn();
     } else if (this.phase === "retreat") {
       this.retreatTicks--;
@@ -752,6 +867,43 @@ export class Game {
       }
       this.action = null;
     }
+    if (this.mode === "practice") {
+      // Targets reset between attempts; projectile and movement physics remain
+      // identical to skirmishes. If the range loses its footing, rebuild it.
+      if (
+        this.terrain.spawnXs.some(
+          (x) => this.terrain.surface(x) > this.water - 40,
+        )
+      )
+        this.terrain.generate(this.seed, this.teamSize);
+      for (const w of this.worms) {
+        const x = this.terrain.spawnXs[w.id];
+        let y = this.terrain.surface(x) - 1;
+        while (this.terrain.bodyCollides(x, y)) y--;
+        Object.assign(w, {
+          x,
+          y,
+          vx: 0,
+          vy: 0,
+          hp: 100,
+          grounded: true,
+          fallStart: y,
+        });
+      }
+      this.turn += 2;
+      this.activeId = 0;
+      this.phase = "aim";
+      this.turnTicks = TURN_TICKS;
+      this.settleTicks = 0;
+      this.retreatTicks = 0;
+      this.events.push({
+        type: "turn",
+        x: this.active.x,
+        y: this.active.y,
+        actor: this.activeId,
+      });
+      return;
+    }
     const living = [0, 1].map((team) =>
       this.worms.filter((w) => w.team === team && w.hp > 0),
     );
@@ -764,14 +916,13 @@ export class Game {
     this.turn++;
     const team = this.turn % 2;
     if (team === 0) {
-      this.rotations[0]++;
-      this.rotations[1]++;
       this.wind = Math.round((this.random() - 0.5) * 64);
-      if (this.round > 10) this.water -= 24;
+      if (this.round > this.suddenDeathRound) this.water -= 24;
     }
     const members = this.worms.filter((w) => w.team === team);
-    let index = this.rotations[team] % members.length;
+    let index = (this.rotations[team] + 1) % members.length;
     while (members[index].hp <= 0) index = (index + 1) % members.length;
+    this.rotations[team] = index;
     this.activeId = members[index].id;
     this.phase = "aim";
     this.turnTicks = TURN_TICKS;
@@ -950,3 +1101,5 @@ export function* planShots(game: Game): Generator<ShotPlan, ShotPlan> {
   }
   return best;
 }
+
+export type GameSnapshot = ReturnType<Game["snapshot"]>;

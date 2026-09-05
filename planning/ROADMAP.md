@@ -1,6 +1,6 @@
 # Delivery plan
 
-Status: the first local 2-versus-2 prototype is implemented; see [the prototype guide](../docs/PROTOTYPE.md) for measured evidence and remaining limits. P0 is complete. P1/P2 have an initial playable implementation and await hands-on feel feedback; later milestones remain planned. The scope is governed by [SCOPE.md](../docs/SCOPE.md). Milestones close on observable results, not on an assumed calendar duration.
+Status: Skirmish 03 implements the 4v4 rules, background shot planner, three scenery themes, practice, local names, rebinding and exact turn-start save/resume. See [the release record](../docs/RELEASE.md) for current measured evidence and launch gates. P0 is complete; P1–P5 have playable implementations with remaining human-feel, final-audio and browser/performance acceptance checks. P6 has static configuration and CI but no hosted deployment.
 
 ## Prototype 02 — Accepted playtest expansion
 

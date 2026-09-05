@@ -30,14 +30,22 @@ export function texture(el: HTMLCanvasElement): CanvasTexture {
   return tex;
 }
 
-export function skyArt(): HTMLCanvasElement {
+export function skyArt(
+  theme: "garden" | "canyon" | "frost" = "garden",
+): HTMLCanvasElement {
   const [el, c] = canvas(WORLD_WIDTH, WORLD_HEIGHT);
   const r = seededRandom(920);
   const sky = c.createLinearGradient(0, 0, 0, 900);
-  sky.addColorStop(0, "#203f50");
-  sky.addColorStop(0.48, "#6b9c9a");
-  sky.addColorStop(0.8, "#c9d0ad");
-  sky.addColorStop(1, "#203c43");
+  const palette =
+    theme === "canyon"
+      ? ["#41314e", "#c07772", "#efd09f", "#643f49"]
+      : theme === "frost"
+        ? ["#263650", "#729eb5", "#d5e5e8", "#344a64"]
+        : ["#203f50", "#6b9c9a", "#c9d0ad", "#203c43"];
+  sky.addColorStop(0, palette[0]);
+  sky.addColorStop(0.48, palette[1]);
+  sky.addColorStop(0.8, palette[2]);
+  sky.addColorStop(1, palette[3]);
   c.fillStyle = sky;
   c.fillRect(0, 0, 1600, 900);
   const glow = c.createRadialGradient(1200, 190, 15, 1200, 190, 235);
@@ -69,7 +77,13 @@ export function skyArt(): HTMLCanvasElement {
   c.globalAlpha = 1;
   // Painted, two-dimensional distance layers. They never become collision.
   for (let layer = 0; layer < 3; layer++) {
-    c.fillStyle = ["#658e8a", "#47756f", "#2e5d5c"][layer];
+    c.fillStyle = (
+      theme === "canyon"
+        ? ["#ac7b79", "#8a585f", "#653e4e"]
+        : theme === "frost"
+          ? ["#8baebb", "#648498", "#426377"]
+          : ["#658e8a", "#47756f", "#2e5d5c"]
+    )[layer];
     c.beginPath();
     c.moveTo(0, 900);
     for (let x = 0; x <= 1600; x += 8)
@@ -77,7 +91,9 @@ export function skyArt(): HTMLCanvasElement {
         x,
         490 +
           layer * 64 +
-          35 * Math.sin(x * 0.008 + layer * 2) +
+          (theme === "canyon"
+            ? 65 * Math.round(Math.sin(x * 0.008 + layer * 2))
+            : 35 * Math.sin(x * 0.008 + layer * 2)) +
           26 * Math.sin(x * 0.015 + layer),
       );
     c.lineTo(1600, 900);
@@ -113,7 +129,10 @@ export function skyArt(): HTMLCanvasElement {
   return el;
 }
 
-export function terrainArt(terrain: Terrain): HTMLCanvasElement {
+export function terrainArt(
+  terrain: Terrain,
+  theme: "garden" | "canyon" | "frost" = "garden",
+): HTMLCanvasElement {
   const [el, c] = canvas(terrain.width, terrain.height);
   const pixels = c.createImageData(terrain.width, terrain.height);
   const data = pixels.data;
@@ -138,6 +157,16 @@ export function terrainArt(terrain: Terrain): HTMLCanvasElement {
         red = 109 + noise;
         green = 146 + noise;
         blue = 87 + noise;
+      }
+      if (theme === "canyon" && kind === 1) {
+        red += 42;
+        green += 12;
+        blue += 17;
+      }
+      if (theme === "frost" && kind === 1) {
+        red = grass ? 210 + noise : red - 30;
+        green = grass ? 229 + noise : green + 15;
+        blue = grass ? 235 + noise : blue + 40;
       }
       if (kind === 2) {
         red = 133 + noise;
@@ -178,7 +207,8 @@ export function terrainArt(terrain: Terrain): HTMLCanvasElement {
     c.stroke();
   }
   c.globalCompositeOperation = "source-over";
-  c.strokeStyle = "#9caf68";
+  c.strokeStyle =
+    theme === "frost" ? "#d8e9ee" : theme === "canyon" ? "#ccaa78" : "#9caf68";
   c.lineWidth = 2;
   for (let x = 65; x < 1530; x += 7) {
     const y = terrain.surface(x);

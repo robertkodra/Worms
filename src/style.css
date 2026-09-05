@@ -1460,3 +1460,64 @@ dialog.arsenal-dialog {
   border-color: #ef9b87;
   background: #643e3ced;
 }
+
+.match-setup {
+  margin: 20px 0 12px;
+  border-top: 1px solid #ffffff20;
+  padding-top: 16px;
+}
+.match-setup summary {
+  cursor: pointer;
+  color: var(--cream, #fff2cf);
+  font-size: 13px;
+  font-weight: 600;
+}
+.match-setup select,
+.name-grid input {
+  color: #fff2cf;
+  background: #17333b;
+  border: 1px solid #75999260;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: inherit;
+}
+.name-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.name-grid label {
+  display: grid;
+  gap: 5px;
+  color: #b7c7bf;
+  font-size: 11px;
+}
+.name-grid input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+#continue-button[hidden] {
+  display: none;
+}
+#bindings .settings-row {
+  margin: 8px 0;
+}
+#bindings button {
+  min-width: 90px;
+  text-align: right;
+}
+#start-dialog,
+#pause-dialog {
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+}
+#save-status {
+  min-height: 18px;
+}
+@media (max-width: 650px) {
+  .name-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

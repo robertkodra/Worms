@@ -1,5 +1,7 @@
 # Local playable prototype 02
 
+> Historical prototype record. For the current 4v4 build, see [Skirmish 03](RELEASE.md).
+
 Updated 2026-09-05. The owner accepted the first 2D prototype and requested more personality, equipment, map variety and purposeful computer movement. This is the current implemented slice of the [larger scope](SCOPE.md).
 
 ## Run locally

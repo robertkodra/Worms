@@ -12,7 +12,7 @@ import {
 import { Terrain, INITIAL_WATER } from "../src/game/terrain";
 
 function flatGame(): Game {
-  const g = new Game(77);
+  const g = new Game(77, { teamSize: 2 });
   g.terrain = new Terrain();
   g.terrain.rectangle(0, 600, 1600, 260, 1);
   g.worms.forEach((w, i) => {
@@ -32,8 +32,8 @@ function ticks(g: Game, n: number): void {
 
 describe("terrain is the authoritative collision and destruction map", () => {
   it("generates identical playable terrain and supported spawns from a seed", () => {
-    const a = new Game(41823),
-      b = new Game(41823);
+    const a = new Game(41823, { teamSize: 2 }),
+      b = new Game(41823, { teamSize: 2 });
     expect(a.terrain.cells).toEqual(b.terrain.cells);
     for (const w of a.worms) {
       expect(a.terrain.bodyCollides(w.x, w.y)).toBe(false);
@@ -235,7 +235,7 @@ describe("match progression", () => {
   });
   it("finishes complete 2v2 AI matches with finite state", () => {
     for (const seed of [41823, 7, 934]) {
-      const g = new Game(seed);
+      const g = new Game(seed, { teamSize: 2 });
       let simulated = 0;
       while (g.phase !== "over" && simulated < 90000) {
         if (g.phase === "aim") {

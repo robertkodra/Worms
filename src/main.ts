@@ -1,6 +1,16 @@
 import "./style.css";
 import {
+  DEFAULT_BINDINGS,
+  ACTION_LABELS,
+  Action,
+  Bindings,
+  bindable,
+  readBindings,
+  keyLabel,
+} from "./input";
+import {
   Game,
+  DEFAULT_NAMES,
   STEP,
   Weapon,
   WEAPONS,
@@ -15,6 +25,8 @@ import { BANTER, chatterEvent, chatterKey } from "./banter";
 import { GameScene } from "./render/scene";
 import { wormArt } from "./render/art";
 import { AudioBus } from "./audio";
+import { BackgroundPlanner } from "./game/planner";
+import { SAVE_KEY, encodeSave, decodeSave, Theme } from "./game/save";
 import { registerGameTools } from "./webmcp";
 
 const ICONS = {
@@ -34,26 +46,26 @@ const root = document.querySelector<HTMLDivElement>("#app")!;
 root.innerHTML = `<main class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon"><img id="brand-worm" alt="" /></div><div><div class="brand-word">BURROW <span>BRAWL</span></div><div class="edition">A small territorial dispute</div></div></div>
-    <div class="top-status"><i class="live-dot"></i><strong>THE GARDEN AFTER HOURS</strong></div>
+    <div class="top-status"><i class="live-dot"></i><strong id="environment-title">THE GARDEN AFTER HOURS</strong></div>
     <div class="top-actions"><span class="seed-label">FIELD <b id="field-seed">41823</b></span><button class="icon-button" id="sound-button" aria-label="Mute sound" title="Sound">${svg("sound")}</button><button class="icon-button" id="help-button" aria-label="How to play" title="How to play">${svg("help")}</button><button class="icon-button" id="pause-button" aria-label="Pause game" title="Pause game">${svg("pause")}</button></div>
   </header>
   <section class="battlefield" id="battlefield" aria-label="Game battlefield">
     <div class="labels" id="labels" aria-hidden="true"></div>
     <div class="field-top">
-      <div class="team-card"><div class="team-heading"><span><span class="team-symbol">▲ </span> THE ROOT CREW</span><strong id="team-hp-0">200</strong></div><div class="team-bars"><i><b id="hp-0" style="width:100%"></b></i><i><b id="hp-1" style="width:100%"></b></i></div><div class="team-subtitle">Pip & Miso · Your crew</div></div>
+      <div class="team-card"><div class="team-heading"><span><span class="team-symbol">▲ </span> THE ROOT CREW</span><strong id="team-hp-0">400</strong></div><div class="team-bars" id="bars-0"></div><div class="team-subtitle" id="squad-0">Four worms · Your crew</div></div>
       <div class="match-center"><div class="wind"><span class="wind-arrow" id="wind-arrow">→</span><strong id="wind-value">12</strong><span>WIND</span></div><div class="round-label" id="round-label">ROUND 01</div><div class="turn-banner hidden" id="turn-banner"><span class="time" id="timer">45</span><div class="turn-caption"><span id="turn-caption">Your move</span><small id="turn-detail">Pip is up</small></div></div></div>
-      <div class="team-card enemy"><div class="team-heading"><strong id="team-hp-1">200</strong><span>THE NIGHT SHIFT <span class="team-symbol"> ◆</span></span></div><div class="team-bars"><i><b id="hp-2" style="width:100%"></b></i><i><b id="hp-3" style="width:100%"></b></i></div><div class="team-subtitle">Moss & Grub · Computer</div></div>
+      <div class="team-card enemy"><div class="team-heading"><strong id="team-hp-1">400</strong><span>THE NIGHT SHIFT <span class="team-symbol"> ◆</span></span></div><div class="team-bars" id="bars-1"></div><div class="team-subtitle" id="squad-1">Four worms · Computer</div></div>
     </div>
     <div class="banter" id="banter" role="status" aria-live="polite"></div>
     <div class="field-tag" id="map-layout">Moonlit garden / skirmish</div>
     <div class="dock-area"><div class="aim-readout" id="aim-readout"><span>ANGLE <strong id="angle-readout">45°</strong></span><span>POWER <strong id="power-value">70%</strong><span class="power-track"><i id="power-bar"></i></span></span><span class="readout-note" id="weapon-hint">Hold F or click to charge</span></div><div class="weapon-dock" id="weapon-dock"></div></div>
     <div class="toast" id="toast" role="status"></div>
   </section>
-  <footer class="controls-line"><span><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / PROTOTYPE 02</a></footer>
+  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 03</a></footer>
 </main>
-<dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Two worms on your side. Two with other ideas.<br>Judge the wind, pick your shot, and leave your mark on the landscape.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><div class="start-actions"><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
-<dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><label class="settings-row">Sound effects<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">30 original spoken quips. Captions always on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><div class="dialog-buttons"><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
-<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div class="dialog-inner"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Open the full arsenal · turn pauses</div><div><kbd>Right-drag · Wheel · R</kbd>Pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. New battlefields shuffle the layout; the same seed always recreates it. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></dialog>
+<dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Four worms on your side. Four with other ideas.<br>Judge the wind, pick your shot, and leave your mark on the landscape.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><details class="match-setup"><summary>Make it your battlefield</summary><label class="settings-row" for="theme-input">Scenery<select id="theme-input"><option value="garden">Moonlit garden</option><option value="canyon">Copper canyon</option><option value="frost">Frost hollow</option></select></label><div class="name-grid" id="crew-names"></div></details><p id="save-status" class="voice-note" role="status"></p><div class="start-actions"><button class="primary-button" id="continue-button" hidden>Continue saved skirmish</button><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="practice-button">Visit the practice range</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
+<dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><label class="settings-row">All sound<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Placeholder worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">Temporary voice pack. Replacement recordings are in progress; captions always stay on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><details class="match-setup"><summary>Keyboard controls</summary><div id="bindings"></div><p class="voice-note" id="binding-note">Select a control, then press a letter or Space. Arrows aim placed items; 1–4 select quick slots.</p><button class="shuffle-button" id="reset-bindings">Reset controls</button></details><p class="voice-note" id="checkpoint-note">Autosaved at the start of each of your turns.</p><div class="dialog-buttons"><button class="secondary-button" id="menu-button">Return to menu</button><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div class="dialog-inner"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list" id="help-controls"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Open the full arsenal · turn pauses</div><div><kbd>Right-drag · Wheel · R</kbd>Pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. New battlefields shuffle the layout; the same seed always recreates it. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></dialog>
 <dialog id="result-dialog" aria-labelledby="result-title"><div class="dialog-inner"><div class="eyebrow" id="result-eyebrow">The dust has settled</div><h2 class="dialog-heading" id="result-title">A small, decisive victory.</h2><p class="dialog-description" id="result-copy"></p><div class="stats-grid"><div><b id="stat-rounds">0</b><span>ROUNDS</span></div><div><b id="stat-shots">0</b><span>SHOTS</span></div><div><b id="stat-craters">0</b><span>NEW CRATERS</span></div></div><div class="dialog-buttons"><button class="primary-button" id="rematch-button">Same field. Settle the score. ${svg("arrow")}</button><button class="secondary-button" id="result-new">New battlefield</button></div></div></dialog>
 <dialog id="arsenal-dialog" class="arsenal-dialog" aria-labelledby="arsenal-title"><div class="arsenal-header"><div><div class="eyebrow">The equipment shed</div><h2 id="arsenal-title">Small arms. Big ideas.</h2></div><button class="icon-button" id="close-arsenal" aria-label="Close arsenal">×</button></div><div class="arsenal-toolbar"><input type="search" id="arsenal-search" placeholder="Find a weapon or tool…" aria-label="Search arsenal" /><span class="arsenal-count" id="arsenal-count">12 ITEMS</span></div><div class="arsenal-categories" id="arsenal-categories" aria-label="Weapon categories"></div><div class="arsenal-grid" id="arsenal-grid" aria-label="Available equipment"></div><div class="arsenal-detail" id="arsenal-detail" aria-live="polite"></div><div class="arsenal-foot"><span>Turn paused while you browse.</span><span>Select to equip · new items use slot 4</span></div></dialog>`;
 
@@ -84,7 +96,7 @@ function buildDock(): void {
           `<button class="weapon" id="quick-${i}" data-weapon="${kind}" aria-label="${WEAPONS[kind].name}" aria-pressed="false" title="${WEAPONS[kind].hint}"><span class="key">${i + 1}</span><span class="stock" id="quick-stock-${i}"></span><img src="${scene.icons[kind]}" alt="" /><span class="weapon-name">${WEAPONS[kind].short}</span></button>`,
       )
       .join("") +
-    `<button class="arsenal-button" id="arsenal-button" aria-label="Open arsenal" title="Full arsenal (Q)"><span class="arsenal-glyph">▦</span><strong>ARSENAL</strong><small>Q · ${kinds.length} ITEMS</small></button><button class="skip-button" id="skip-button" aria-label="End turn" title="End turn">${svg("skip")}<small>SKIP</small></button>`;
+    `<button class="arsenal-button" id="arsenal-button" aria-label="Open arsenal" title="Full arsenal (${keyLabel(bindings.arsenal)})"><span class="arsenal-glyph">▦</span><strong>ARSENAL</strong><small>${keyLabel(bindings.arsenal)} · ${kinds.length} ITEMS</small></button><button class="skip-button" id="skip-button" aria-label="End turn" title="End turn">${svg("skip")}<small>SKIP</small></button>`;
   quickSlots.forEach(
     (kind, i) => (el(`quick-${i}`).onclick = () => selectWeapon(kind)),
   );
@@ -97,6 +109,13 @@ function buildDock(): void {
   };
 }
 
+const backgroundPlanner = new BackgroundPlanner();
+let workerPending = false;
+let bindings: Bindings = { ...DEFAULT_BINDINGS };
+let bindingCapture: Action | null = null;
+let theme: Theme = "garden";
+let graphicsAvailable = true;
+let checkpointTurn = -1;
 let running = false,
   paused = false,
   weapon: Weapon = "rocket",
@@ -142,22 +161,25 @@ function storeSettings(): void {
         voices: audio.voicesEnabled,
         voiceVolume: audio.voiceVolume,
         reduced: scene.reducedMotion,
+        bindings,
       }),
     );
   } catch {
     /* Storage is optional for a local match. */
   }
 }
+audio.setVoices(false);
+scene.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 try {
   const saved = JSON.parse(localStorage.getItem("burrow-settings-v1") ?? "{}");
+  bindings = readBindings(saved.bindings);
   audio.setMuted(saved.muted === true);
-  audio.setVoices(saved.voices !== false);
+  audio.setVoices(saved.voices === true);
   audio.setVoiceVolume(
     typeof saved.voiceVolume === "number" ? saved.voiceVolume : 0.7,
   );
   scene.reducedMotion =
-    saved.reduced === true ||
-    matchMedia("(prefers-reduced-motion: reduce)").matches;
+    typeof saved.reduced === "boolean" ? saved.reduced : scene.reducedMotion;
 } catch {}
 function syncSettings(): void {
   el("sound-button").innerHTML = svg(audio.muted ? "muted" : "sound");
@@ -171,7 +193,7 @@ function syncSettings(): void {
     Math.round(audio.voiceVolume * 100),
   );
   el("voice-note").textContent =
-    "30 original spoken quips. Captions always on.";
+    "Temporary voice pack. Replacement recordings are in progress; captions always stay on.";
   el<HTMLInputElement>("motion-setting").checked = scene.reducedMotion;
 }
 syncSettings();
@@ -180,6 +202,7 @@ function closeDialogs(): void {
   arsenalOpen = false;
 }
 function cancelInput(): void {
+  bindingCapture = null;
   keys.clear();
   charging = false;
   charge = 0;
@@ -196,6 +219,10 @@ function pause(): void {
   el<HTMLDialogElement>("pause-dialog").showModal();
 }
 function resume(): void {
+  if (!graphicsAvailable) {
+    showToast("Waiting for graphics to recover. Your match is paused.");
+    return;
+  }
   closeDialogs();
   paused = false;
   cancelInput();
@@ -313,12 +340,46 @@ function randomSeed(previous: number): number {
   if (seed % 4 === previous % 4) seed++;
   return seed;
 }
-function start(seed = Number(el<HTMLInputElement>("seed-input").value)): void {
+function start(
+  seed = Number(el<HTMLInputElement>("seed-input").value),
+  restored?: Game,
+  mode: "skirmish" | "practice" = restored?.mode ?? "skirmish",
+): void {
+  if (!graphicsAvailable) return;
   closeDialogs();
+  backgroundPlanner.cancel();
+  workerPending = false;
+  planner = null;
+  aiBest = null;
+  aiReady = false;
+  checkpointTurn = -1;
+  theme = el<HTMLSelectElement>("theme-input").value as Theme;
+  scene.setTheme(theme);
+  el("environment-title").textContent =
+    theme === "canyon"
+      ? "THE COPPER CANYON"
+      : theme === "frost"
+        ? "THE FROST HOLLOW"
+        : "THE GARDEN AFTER HOURS";
   audio.stopVoices();
-  game = new Game(
-    clamp(Math.floor(Number.isFinite(seed) ? seed : 41823), 1, 999999),
-  );
+  game =
+    restored ??
+    new Game(
+      clamp(Math.floor(Number.isFinite(seed) ? seed : 41823), 1, 999999),
+      {
+        mode,
+        teamSize: mode === "practice" ? 2 : 4,
+        names: DEFAULT_NAMES.map((names, team) =>
+          names.map(
+            (_, index) => el<HTMLInputElement>(`name-${team}-${index}`).value,
+          ),
+        ),
+      },
+    );
+  for (const w of game.worms)
+    el<HTMLInputElement>(`name-${w.team}-${w.id % game.teamSize}`).value =
+      w.name;
+  buildTeamBars();
   running = true;
   paused = false;
   resultShown = false;
@@ -333,12 +394,14 @@ function start(seed = Number(el<HTMLInputElement>("seed-input").value)): void {
   scene.reset();
   audio.unlock();
   el("field-seed").textContent = String(game.seed);
-  el("map-layout").textContent = `${game.terrain.layout} / skirmish`;
+  el("map-layout").textContent =
+    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
   el<HTMLInputElement>("seed-input").value = String(game.seed);
   field.classList.add("playing");
   el("banter").classList.remove("show");
   el("toast").classList.remove("show");
   field.querySelector("canvas")?.focus();
+  checkpoint();
   updateHud();
 }
 function selectWeapon(next: Weapon): void {
@@ -356,6 +419,7 @@ function selectWeapon(next: Weapon): void {
 function canAct(): boolean {
   return (
     running &&
+    graphicsAvailable &&
     !paused &&
     !arsenalOpen &&
     game.active.team === 0 &&
@@ -387,6 +451,8 @@ function fire(): void {
   } else showToast("That item is not available.");
 }
 function startAi(): void {
+  backgroundPlanner.cancel();
+  workerPending = false;
   planner = null;
   aiRoute = planMovement(game);
   aiRouteIndex = 0;
@@ -401,7 +467,26 @@ function updateAi(dt: number): void {
   if (game.active.team !== 1 || game.phase !== "aim") return;
   if (aiRoute && aiRouteIndex < aiRoute.commands.length) return;
   if (!game.active.grounded) return;
-  if (!planner && !aiReady) planner = planShots(game);
+  if (!planner && !aiReady && !workerPending) {
+    workerPending = true;
+    backgroundPlanner.start(
+      game,
+      (plan, done) => {
+        aiBest = plan;
+        aiReady = done;
+        if (done) workerPending = false;
+      },
+      () => {
+        workerPending = false;
+        planner = planShots(game);
+      },
+    );
+  }
+  if (aiAge > 3 && workerPending && !aiBest) {
+    backgroundPlanner.cancel();
+    workerPending = false;
+    planner = planShots(game);
+  }
   aiAge += dt;
   if (planner && !aiReady) {
     const deadline = performance.now() + 4;
@@ -422,7 +507,10 @@ function updateAi(dt: number): void {
     );
     aiAim += difference * Math.min(1, dt * 4);
   }
-  if (aiAge > 1.35 && aiReady && aiBest) {
+  if (aiBest && ((aiAge > 1.35 && aiReady) || aiAge > 5)) {
+    backgroundPlanner.cancel();
+    workerPending = false;
+    planner = null;
     // Small fixed policy error; no trajectory correction or altered damage.
     const aimError = (game.random() - 0.5) * 0.018;
     const powerError = (game.random() - 0.5) * 0.012;
@@ -437,9 +525,9 @@ function updateAi(dt: number): void {
       aiRetreatIndex = 0;
     } else game.endTurn();
   } else if (aiAge > 5.0) {
-    if (aiBest)
-      game.attack(aiBest.weapon, aiBest.angle, aiBest.power, aiBest.target);
-    else game.endTurn();
+    backgroundPlanner.cancel();
+    workerPending = false;
+    game.endTurn();
     planner = null;
   }
 }
@@ -456,7 +544,7 @@ function updateHud(): void {
   el("wind-arrow").textContent = game.wind < 0 ? "←" : "→";
   el("wind-value").textContent = String(Math.abs(game.wind));
   el("round-label").textContent =
-    `ROUND ${String(game.round).padStart(2, "0")}${game.round > 10 ? " · RISING WATER" : ""}`;
+    `${game.mode === "practice" ? "ATTEMPT" : "ROUND"} ${String(game.round).padStart(2, "0")}${game.mode !== "practice" && game.round > game.suddenDeathRound ? " · RISING WATER" : ""}`;
   const mine = game.active.team === 0;
   const banner = el("turn-banner");
   banner.classList.toggle("hidden", !running || game.phase === "over");
@@ -466,9 +554,11 @@ function updateHud(): void {
   );
   banner.classList.toggle("urgent", seconds <= 10);
   el("timer").textContent =
-    game.phase === "settle"
-      ? "··"
-      : String(Math.max(0, seconds)).padStart(2, "0");
+    game.mode === "practice" && game.phase === "aim"
+      ? "∞"
+      : game.phase === "settle"
+        ? "··"
+        : String(Math.max(0, seconds)).padStart(2, "0");
   el("turn-caption").textContent =
     game.phase === "retreat"
       ? "Make yourself scarce!"
@@ -506,27 +596,35 @@ function updateHud(): void {
   el("power-value").textContent = `${Math.round(shownPower * 100)}%`;
   el("power-bar").style.width = `${shownPower * 100}%`;
   el("aim-readout").classList.toggle("charging", charging);
+  const fireKey = keyLabel(bindings.fire);
   el("weapon-hint").textContent = !running
     ? "A little artillery. A lot of consequences."
-    : !mine
-      ? "The other lot are plotting…"
-      : game.phase === "retreat"
-        ? "A / D + Space · Time to move"
-        : game.phase === "settle"
-          ? "Every action has consequences"
-          : WEAPONS[weapon].mode === "place"
-            ? game.canPlace(weapon, target.x, target.y).reason
-            : WEAPONS[weapon].mode === "self"
-              ? `${WEAPONS[weapon].hint} Press F.`
-              : WEAPONS[weapon].mode === "direct"
-                ? "Aim directly · Tap F to fire"
-                : weapon === "shove"
-                  ? "Close range · Tap F to shove"
-                  : charging
-                    ? "Release to fire"
-                    : `${WEAPONS[weapon].range} · Hold F to charge`;
+    : game.mode === "practice" && game.phase === "aim"
+      ? "Practice: judge the wind · aim · fire · try another item"
+      : !mine
+        ? "The other lot are plotting…"
+        : game.phase === "retreat"
+          ? `${keyLabel(bindings.left)} / ${keyLabel(bindings.right)} + ${keyLabel(bindings.jump)} · Time to move`
+          : game.phase === "settle"
+            ? "Every action has consequences"
+            : WEAPONS[weapon].mode === "place"
+              ? `Arrow keys or pointer · ${game.canPlace(weapon, target.x, target.y).reason}`
+              : WEAPONS[weapon].mode === "self"
+                ? `${WEAPONS[weapon].hint} Press ${fireKey}.`
+                : WEAPONS[weapon].mode === "direct"
+                  ? `Aim directly · Tap ${fireKey} to fire`
+                  : weapon === "shove"
+                    ? `Close range · Tap ${fireKey} to shove`
+                    : charging
+                      ? "Release to fire"
+                      : `${WEAPONS[weapon].range} · Hold ${fireKey} to charge`;
 }
 function showResult(): void {
+  backgroundPlanner.cancel();
+  if (game.mode === "skirmish")
+    try {
+      localStorage.removeItem(SAVE_KEY);
+    } catch {}
   resultShown = true;
   cancelInput();
   const win = game.winner === 0,
@@ -555,9 +653,10 @@ el("close-help").onclick = closeHelp;
 el("help-done").onclick = closeHelp;
 el("pause-button").onclick = pause;
 el("resume-button").onclick = resume;
-el("restart-button").onclick = () => start(game.seed);
+el("restart-button").onclick = () => start(game.seed, undefined, game.mode);
 el("rematch-button").onclick = () => start(game.seed);
-el("new-button").onclick = () => start(randomSeed(game.seed));
+el("new-button").onclick = () =>
+  start(randomSeed(game.seed), undefined, game.mode);
 el("result-new").onclick = () => start(randomSeed(game.seed));
 el("sound-button").onclick = () => {
   audio.unlock();
@@ -619,15 +718,183 @@ el<HTMLInputElement>("voice-setting").onchange = (e) => {
 };
 el("shuffle-seed").onclick = () => {
   game = new Game(randomSeed(game.seed));
+  buildTeamBars();
   scene.reset();
   el<HTMLInputElement>("seed-input").value = String(game.seed);
   el("field-seed").textContent = String(game.seed);
-  el("map-layout").textContent = `${game.terrain.layout} / skirmish`;
+  el("map-layout").textContent =
+    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
 };
+function renderBindings(): void {
+  const guide = [
+    [
+      `${keyLabel(bindings.left)} / ${keyLabel(bindings.right)}`,
+      "Inch left / right",
+    ],
+    [keyLabel(bindings.jump), "Jump · hold Shift for a backward high jump"],
+    ["Pointer / ↑ / ↓", "Set your aim · all four arrows position placed items"],
+    [
+      keyLabel(bindings.fire),
+      "Hold to charge; release to fire · or use the left mouse button",
+    ],
+    ["1 · 2 · 3 · 4", "Your four quick slots"],
+    [keyLabel(bindings.arsenal), "Open the full arsenal · the turn pauses"],
+    [
+      `Right-drag · Wheel · ${keyLabel(bindings.recenter)}`,
+      "Pan · zoom · recenter",
+    ],
+  ];
+  el("help-controls").replaceChildren(
+    ...guide.map(([key, description]) => {
+      const row = document.createElement("div"),
+        badge = document.createElement("kbd");
+      badge.textContent = key;
+      row.append(badge, document.createTextNode(description));
+      return row;
+    }),
+  );
+  if (el("arsenal-button")) buildDock();
+  el("bindings").replaceChildren(
+    ...(Object.keys(bindings) as Action[]).map((action) => {
+      const row = document.createElement("div"),
+        label = document.createElement("span"),
+        button = document.createElement("button");
+      row.className = "settings-row";
+      label.textContent = ACTION_LABELS[action];
+      button.className = "shuffle-button";
+      button.textContent = keyLabel(bindings[action]);
+      button.setAttribute(
+        "aria-label",
+        `Change ${ACTION_LABELS[action]}: ${keyLabel(bindings[action])}`,
+      );
+      button.onclick = () => {
+        bindingCapture = action;
+        button.textContent = "Press a key…";
+        el("binding-note").textContent =
+          "Choose an unused letter or Space. Escape cancels.";
+      };
+      row.append(label, button);
+      return row;
+    }),
+  );
+  el("control-summary").textContent =
+    `${keyLabel(bindings.left)} / ${keyLabel(bindings.right)} Move · ${keyLabel(bindings.jump)} Jump · Shift + jump Backflip · ${keyLabel(bindings.fire)} Fire · ${keyLabel(bindings.arsenal)} Arsenal · 1–4 Items · ${keyLabel(bindings.recenter)} Recenter`;
+}
+el("reset-bindings").onclick = () => {
+  bindings = { ...DEFAULT_BINDINGS };
+  bindingCapture = null;
+  renderBindings();
+  storeSettings();
+};
+renderBindings();
+function buildTeamBars(): void {
+  for (const team of [0, 1]) {
+    const members = game.worms.filter((w) => w.team === team);
+    el(`bars-${team}`).replaceChildren(
+      ...members.map((w) => {
+        const track = document.createElement("i"),
+          bar = document.createElement("b");
+        bar.id = `hp-${w.id}`;
+        bar.style.width = `${w.hp}%`;
+        track.title = w.name;
+        track.append(bar);
+        return track;
+      }),
+    );
+    el(`squad-${team}`).textContent =
+      `${members.length} worms · ${team === 0 ? "Your crew" : "Computer"}`;
+  }
+}
+function checkpoint(): void {
+  if (game.mode !== "skirmish") {
+    el("checkpoint-note").textContent =
+      "Practice resets targets after each shot. Your saved skirmish stays available in the menu.";
+    return;
+  }
+  if (
+    game.active.team !== 0 ||
+    game.phase !== "aim" ||
+    checkpointTurn === game.turn
+  )
+    return;
+  checkpointTurn = game.turn;
+  try {
+    localStorage.setItem(SAVE_KEY, encodeSave(game, theme));
+    el("checkpoint-note").textContent =
+      `Round ${game.round} saved. Returning to the menu resumes from the start of this turn.`;
+  } catch {
+    el("checkpoint-note").textContent =
+      "Your browser could not save this turn. Keep this page open to finish the match.";
+  }
+}
+function refreshContinue(): void {
+  const button = el<HTMLButtonElement>("continue-button");
+  button.hidden = true;
+  try {
+    const text = localStorage.getItem(SAVE_KEY);
+    if (!text) {
+      el("save-status").textContent =
+        "Skirmishes autosave at the start of your turn, on this browser.";
+      return;
+    }
+    const saved = decodeSave(text);
+    button.hidden = false;
+    button.textContent = `Continue · round ${saved.game.round}`;
+    el("save-status").textContent =
+      `Saved ${new Date(saved.savedAt).toLocaleString()} · field ${saved.game.seed}`;
+  } catch {
+    el("save-status").textContent =
+      "The saved match could not be opened. You can start a fresh skirmish.";
+  }
+}
+el("practice-button").onclick = () =>
+  start(
+    Number(el<HTMLInputElement>("seed-input").value),
+    undefined,
+    "practice",
+  );
+el("continue-button").onclick = () => {
+  try {
+    const saved = decodeSave(localStorage.getItem(SAVE_KEY) ?? "");
+    el<HTMLSelectElement>("theme-input").value = saved.theme;
+    start(saved.game.seed, saved.game);
+  } catch {
+    refreshContinue();
+  }
+};
+el("menu-button").onclick = () => {
+  running = false;
+  paused = false;
+  backgroundPlanner.cancel();
+  workerPending = false;
+  cancelInput();
+  audio.suspend();
+  closeDialogs();
+  refreshContinue();
+  el<HTMLDialogElement>("start-dialog").showModal();
+};
+for (const [team, names] of DEFAULT_NAMES.entries())
+  for (const [index, name] of names.entries()) {
+    const label = document.createElement("label"),
+      input = document.createElement("input");
+    label.textContent = `${team === 0 ? "Crew" : "Rival"} ${index + 1}`;
+    input.id = `name-${team}-${index}`;
+    input.value = name;
+    input.maxLength = 16;
+    label.append(input);
+    el("crew-names").append(label);
+  }
+el<HTMLSelectElement>("theme-input").onchange = () => {
+  theme = el<HTMLSelectElement>("theme-input").value as Theme;
+  scene.setTheme(theme);
+};
+buildTeamBars();
+refreshContinue();
 buildDock();
 el<HTMLInputElement>("seed-input").value = String(game.seed);
 el("field-seed").textContent = String(game.seed);
-el("map-layout").textContent = `${game.terrain.layout} / skirmish`;
+el("map-layout").textContent =
+  `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
 dialogs.forEach((d) =>
   d.addEventListener("cancel", (e) => {
     e.preventDefault();
@@ -695,6 +962,33 @@ gameCanvas.addEventListener(
   { passive: false },
 );
 window.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (bindingCapture) {
+    e.preventDefault();
+    const action = bindingCapture;
+    if (e.code === "Escape") {
+      bindingCapture = null;
+      renderBindings();
+      return;
+    }
+    if (
+      !bindable(e.code) ||
+      Object.entries(bindings).some(
+        ([key, code]) => key !== action && code === e.code,
+      )
+    ) {
+      el("binding-note").textContent =
+        "Choose an unused letter or Space. Escape cancels.";
+      return;
+    }
+    bindings[action] = e.code;
+    bindingCapture = null;
+    storeSettings();
+    renderBindings();
+    el("binding-note").textContent =
+      "Control saved. Select another control to change it.";
+    return;
+  }
   if (e.code === "Escape") {
     e.preventDefault();
     if (arsenalOpen) closeArsenal();
@@ -703,8 +997,13 @@ window.addEventListener("keydown", (e) => {
     else if (running && !paused) pause();
     return;
   }
-  if (e.target instanceof HTMLInputElement) return;
-  if (e.code === "KeyQ" && !e.repeat) {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLSelectElement ||
+    (e.target instanceof HTMLElement && e.target.isContentEditable)
+  )
+    return;
+  if (e.code === bindings.arsenal && !e.repeat) {
     e.preventDefault();
     if (arsenalOpen) closeArsenal();
     else openArsenal();
@@ -717,27 +1016,26 @@ window.addEventListener("keydown", (e) => {
   )
     return;
   if (
-    [
-      "Space",
-      "ArrowUp",
-      "ArrowDown",
-      "ArrowLeft",
-      "ArrowRight",
-      "KeyF",
-    ].includes(e.code)
+    ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
+      e.code,
+    ) ||
+    Object.values(bindings).includes(e.code)
   )
     e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
-  if (e.code === "Space" && game.active.team === 0) game.jump(e.shiftKey);
-  if (e.code === "KeyF") beginCharge();
-  if (e.code === "KeyR") scene.recenter(game, e.shiftKey);
+  if (e.code === bindings.jump && game.active.team === 0) game.jump(e.shiftKey);
+  if (e.code === bindings.fire) beginCharge();
+  if (e.code === bindings.recenter) scene.recenter(game, e.shiftKey);
   const slot = ["Digit1", "Digit2", "Digit3", "Digit4"].indexOf(e.code);
   if (slot >= 0) selectWeapon(quickSlots[slot]);
 });
 window.addEventListener("keyup", (e) => {
   keys.delete(e.code);
-  if (e.code === "KeyF") fire();
+  if (e.code === bindings.fire) {
+    if (e.metaKey || e.ctrlKey || e.altKey) cancelInput();
+    else fire();
+  }
 });
 window.addEventListener("blur", () => {
   cancelInput();
@@ -755,23 +1053,44 @@ document.addEventListener("visibilitychange", () => {
 });
 gameCanvas.addEventListener("webglcontextlost", (e) => {
   e.preventDefault();
+  graphicsAvailable = false;
   pause();
-  showToast("Graphics paused. Restore the browser window to continue.");
+  el<HTMLButtonElement>("resume-button").disabled = true;
+  el("checkpoint-note").textContent =
+    "Graphics connection lost. The match is paused until your browser restores it.";
+  showToast("Graphics paused. Waiting for your browser to restore the view.");
 });
-gameCanvas.addEventListener("webglcontextrestored", () =>
-  showToast("Graphics restored. Resume when you are ready."),
-);
+gameCanvas.addEventListener("webglcontextrestored", () => {
+  graphicsAvailable = true;
+  scene.reset();
+  el<HTMLButtonElement>("resume-button").disabled = false;
+  el("checkpoint-note").textContent =
+    "Graphics restored. Your match is ready to resume.";
+  showToast("Graphics restored. Resume when you are ready.");
+});
 
 function frame(time: number): void {
   const dt = Math.min(0.06, (time - lastTime) / 1000 || STEP);
   lastTime = time;
-  if (running && !paused && !arsenalOpen && game.phase !== "over") {
+  if (
+    graphicsAvailable &&
+    running &&
+    !paused &&
+    !arsenalOpen &&
+    game.phase !== "over"
+  ) {
     if (lastTurn !== game.turn) {
       lastTurn = game.turn;
       weapon = "rocket";
       angle = game.active.facing > 0 ? -Math.PI / 4 : (-Math.PI * 3) / 4;
       charging = false;
       if (game.active.team === 1) startAi();
+      else {
+        backgroundPlanner.cancel();
+        workerPending = false;
+        planner = null;
+        checkpoint();
+      }
       say({
         type: "turn",
         x: game.active.x,
@@ -783,7 +1102,18 @@ function frame(time: number): void {
     if (canAct()) {
       const adjust =
         (keys.has("ArrowUp") ? -1 : 0) + (keys.has("ArrowDown") ? 1 : 0);
-      if (adjust) angle += adjust * dt * 0.8;
+      if (WEAPONS[weapon].mode === "place") {
+        target.x = clamp(
+          target.x +
+            ((keys.has("ArrowRight") ? 1 : 0) -
+              (keys.has("ArrowLeft") ? 1 : 0)) *
+              dt *
+              160,
+          24,
+          1576,
+        );
+        target.y = clamp(target.y + adjust * dt * 160, 25, game.water - 20);
+      } else if (adjust) angle += adjust * dt * 0.8;
     }
     updateAi(dt);
     accumulator += dt;
@@ -791,8 +1121,16 @@ function frame(time: number): void {
     while (accumulator >= STEP && count++ < 5) {
       if (game.active.team === 0 && game.acting)
         game.move(
-          (keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0) -
-            (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0),
+          (keys.has(bindings.right) ||
+          ((WEAPONS[weapon].mode !== "place" || game.phase !== "aim") &&
+            keys.has("ArrowRight"))
+            ? 1
+            : 0) -
+            (keys.has(bindings.left) ||
+            ((WEAPONS[weapon].mode !== "place" || game.phase !== "aim") &&
+              keys.has("ArrowLeft"))
+              ? 1
+              : 0),
         );
       if (game.active.team === 1) {
         if (
@@ -802,6 +1140,8 @@ function frame(time: number): void {
         ) {
           aiRoute = planMovement(game);
           aiRouteIndex = 0;
+          backgroundPlanner.cancel();
+          workerPending = false;
           planner = null;
           aiReady = false;
           aiBest = null;
@@ -829,8 +1169,14 @@ function frame(time: number): void {
         )
           executeMove(game, aiRetreat.commands[aiRetreatIndex++]);
       }
+      const previousTurn = game.turn;
       game.tick();
       accumulator -= STEP;
+      if (game.turn !== previousTurn) {
+        if (game.active.team === 0) checkpoint();
+        accumulator = 0;
+        break;
+      }
       if (game.winner !== null) break;
     }
     if (count > 5) accumulator = 0;
@@ -843,14 +1189,15 @@ function frame(time: number): void {
     game.events = [];
   }
   const displayAngle = game.active.team === 1 ? aiAim : angle;
-  scene.render(
-    game,
-    displayAngle,
-    game.active.team === 1 ? (aiBest?.weapon ?? "rocket") : weapon,
-    target,
-    time,
-    running && !paused && !arsenalOpen,
-  );
+  if (graphicsAvailable)
+    scene.render(
+      game,
+      displayAngle,
+      game.active.team === 1 ? (aiBest?.weapon ?? "rocket") : weapon,
+      target,
+      time,
+      running && !paused && !arsenalOpen,
+    );
   if (time - lastHud > 65) {
     updateHud();
     lastHud = time;
@@ -903,6 +1250,8 @@ if (import.meta.env.DEV) {
 }
 
 const readMatch = () => ({
+  mode: game.mode,
+  teamSize: game.teamSize,
   running,
   paused: paused || arsenalOpen,
   arsenalOpen,
@@ -966,7 +1315,7 @@ registerGameTools([
   {
     name: "start_skirmish",
     description:
-      "Start or restart the local 2-versus-2 game at the given map seed. Replaces the current match, exactly like the Start/Restart buttons.",
+      "Start or restart the local 4-versus-4 game at the given map seed. Replaces the current match, exactly like the Start/Restart buttons.",
     inputSchema: {
       type: "object",
       properties: { seed: { type: "integer", minimum: 1, maximum: 999999 } },

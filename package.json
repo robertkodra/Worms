@@ -1,6 +1,6 @@
 {
   "name": "burrow-brawl",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "privacy": "node scripts/privacy_check.mjs",
+    "check": "npm test && npm run build && npm run privacy"
   },
   "engines": {
     "node": ">=22.12.0"

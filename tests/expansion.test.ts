@@ -12,7 +12,7 @@ import { planMovement, previewRoute, executeMove } from "../src/game/ai";
 import { chatterEvent, chatterKey, BANTER } from "../src/banter";
 
 function field(): Game {
-  const g = new Game(7);
+  const g = new Game(7, { teamSize: 2 });
   g.terrain = new Terrain();
   g.terrain.rectangle(0, 600, 1600, 260, 1);
   g.wind = 0;
@@ -37,7 +37,7 @@ describe("varied seeded battlefields", () => {
     const layouts = new Set<string>(),
       runs = new Set<number>();
     for (let seed = 1; seed <= 64; seed++) {
-      const g = new Game(seed);
+      const g = new Game(seed, { teamSize: 2 });
       layouts.add(g.terrain.layout);
       let last = false,
         count = 0;

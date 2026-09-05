@@ -1,17 +1,18 @@
-# Worms — Burrow Brawl prototype
+# Worms — Burrow Brawl
 
-An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The proposed game uses Three.js to render a fully 2D illustrated world.
+An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The game uses Three.js to render a fully 2D illustrated world.
 
-**Status: a local 2-versus-2 prototype is playable.** It includes destructible terrain, 12 weapons/tools in a searchable arsenal, four seeded map layouts, a computer opponent that moves and jumps, original 2D art, movement sounds, 30 spoken quips, and a full match/results/rematch flow.
+**Status: a local 4-versus-4 release candidate is playable.** It includes 12 weapons/tools, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
 
 ## Play locally
 
-With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. Open the local URL printed by the server. See the [prototype guide](docs/PROTOTYPE.md) for controls, validation, and current limits.
+With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. Open the local URL printed by the server. Run `npm run check` for tests, build and privacy checks. Run `npm run preview` to inspect the production build locally. See the [release record](docs/RELEASE.md) for validation and remaining gates.
 
 `Worms` is the requested repository name. A distinct public game title will be chosen before launch; **Burrow Brawl** is a provisional creative suggestion. This project is independent of Team17 and the Worms franchise. Art, dialogue, audio, characters, and implementation are to be original.
 
 ## Start here
 
+- [Current release record](docs/RELEASE.md) — implemented features, evidence and remaining launch gates.
 - [Scope of work](docs/SCOPE.md) — experience, deliverables, boundaries, and acceptance criteria.
 - [Game design](docs/GAME_DESIGN.md) — rules, movement, weapons, personality, and interface.
 - [Technical design](docs/TECHNICAL_DESIGN.md) — simulation, terrain, rendering, and computer opponent.
@@ -26,7 +27,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 One player commands four characters against a challenging computer-controlled team of four. Short turns, wind, arcing projectiles, craters, caves, knockback, and well-timed banter create matches designed to last around 15–25 minutes. One fixed opponent difficulty; no account or game server required.
 
-The implemented prototype is smaller: a complete 2-versus-2 match on one terrain theme, with 12 items, four generated layouts, original character movement, and a fixed tactical opponent. Its purpose is to prove the feel before expanding the game.
+The current candidate implements the four-member teams and core browser product. The original 15–25 minute duration is a design target, not a measured result; playtest timing will determine whether it needs revision.
 
 ## Publication and reuse
 

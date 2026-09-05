@@ -73,6 +73,16 @@ export class GameScene {
   private resizeObserver: ResizeObserver;
   readonly icons: Record<Weapon, string>;
   reducedMotion = false;
+  private theme: "garden" | "canyon" | "frost" = "garden";
+  setTheme(theme: "garden" | "canyon" | "frost"): void {
+    if (this.theme === theme) return;
+    this.theme = theme;
+    const material = this.skyMesh.material as THREE.MeshBasicMaterial;
+    material.map?.dispose();
+    material.map = texture(skyArt(theme));
+    material.needsUpdate = true;
+    this.terrainRevision = -1;
+  }
 
   constructor(
     readonly container: HTMLElement,
@@ -114,11 +124,11 @@ export class GameScene {
         (this.weapons[k].image as HTMLCanvasElement).toDataURL(),
       ]),
     ) as Record<Weapon, string>;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       const sprite = new THREE.Mesh(
         new THREE.PlaneGeometry(1, 1),
         new THREE.MeshBasicMaterial({
-          map: this.wormTextures[i < 2 ? 0 : 1],
+          map: this.wormTextures[i < 4 ? 0 : 1],
           transparent: true,
           depthTest: false,
         }),
@@ -127,7 +137,8 @@ export class GameScene {
       this.wormSprites.push(sprite);
       this.scene.add(sprite);
       const label = document.createElement("div");
-      label.className = `worm-label team-${i < 2 ? 0 : 1}`;
+      label.className = `worm-label team-${i < 4 ? 0 : 1}`;
+      label.append(document.createTextNode(""), document.createElement("span"));
       labelLayer.append(label);
       this.labels.push(label);
     }
@@ -383,7 +394,7 @@ export class GameScene {
     ) {
       const material = this.terrainMesh.material as THREE.MeshBasicMaterial;
       material.map?.dispose();
-      material.map = texture(terrainArt(game.terrain));
+      material.map = texture(terrainArt(game.terrain, this.theme));
       material.needsUpdate = true;
       this.terrainRevision = game.terrain.revision;
       this.terrainSource = game.terrain;
@@ -413,7 +424,12 @@ export class GameScene {
       (this.camera.top - this.camera.bottom) / 900,
       1,
     );
-    for (let i = 0; i < game.worms.length; i++) {
+    for (let i = 0; i < this.wormSprites.length; i++) {
+      if (!game.worms[i]) {
+        this.wormSprites[i].visible = false;
+        this.labels[i].hidden = true;
+        continue;
+      }
       const w = game.worms[i],
         sprite = this.wormSprites[i],
         label = this.labels[i];
@@ -421,18 +437,50 @@ export class GameScene {
       label.hidden = w.hp <= 0;
       if (w.hp <= 0) continue;
       const moving = w.grounded && Math.abs(w.vx) > 3;
-      const pulse = moving
-        ? Math.sin(w.walk * 0.22) * 0.1
-        : Math.sin(time * 0.002 + i) * 0.018;
+      const pulse = this.reducedMotion
+        ? 0
+        : moving
+          ? Math.sin(w.walk * 0.22) * 0.1
+          : Math.sin(time * 0.002 + i) * 0.018;
       sprite.material.map = this.wormTextures[w.team + (w.hurt > 0 ? 2 : 0)];
       sprite.scale.set(38 * (1 + pulse) * w.facing, 41 * (1 - pulse), 1);
       sprite.position.set(w.x, WORLD_HEIGHT - w.y + 18, 3);
-      sprite.rotation.z = !w.grounded ? clamp(w.vx * 0.0015, -0.3, 0.3) : 0;
+      sprite.rotation.z =
+        !this.reducedMotion && !w.grounded
+          ? clamp(w.vx * 0.0015, -0.3, 0.3)
+          : 0;
       const p = this.worldToScreen(w.x, w.y - 45);
       label.style.transform = `translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;
       label.classList.toggle("active", playing && w.id === game.activeId);
-      const text = `${w.name}<span>${w.hp}</span>`;
-      if (label.innerHTML !== text) label.innerHTML = text;
+      label.classList.toggle("team-0", w.team === 0);
+      label.classList.toggle("team-1", w.team === 1);
+      if (label.firstChild!.textContent !== w.name)
+        label.firstChild!.textContent = w.name;
+      label.lastChild!.textContent = String(w.hp);
+    }
+    // Lay labels out in screen space; eight names must remain legible when
+    // the full battlefield is fitted into a narrow desktop panel.
+    const occupied: { x: number; y: number; width: number }[] = [];
+    for (const w of [...game.worms]
+      .filter((w) => w.hp > 0)
+      .sort((a, b) => a.x - b.x)) {
+      const label = this.labels[w.id],
+        p = this.worldToScreen(w.x, w.y - 45);
+      const width = label.offsetWidth + 8;
+      let y = p.y;
+      for (let lane = 0; lane < 8; lane++) {
+        y = p.y - lane * 20;
+        if (
+          !occupied.some(
+            (other) =>
+              Math.abs(other.x - p.x) < (other.width + width) / 2 &&
+              Math.abs(other.y - y) < 19,
+          )
+        )
+          break;
+      }
+      occupied.push({ x: p.x, y, width });
+      label.style.transform = `translate(${p.x}px,${y}px) translate(-50%,-100%)`;
     }
     const active = game.active;
     this.held.visible = playing && active.hp > 0 && game.phase === "aim";

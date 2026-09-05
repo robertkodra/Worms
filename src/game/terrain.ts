@@ -4,15 +4,26 @@ export const INITIAL_WATER = 802;
 export const WORM_RADIUS = 9;
 export const WORM_HEIGHT = 28;
 
-export function seededRandom(seed: number): () => number {
+export interface RandomSource {
+  (): number;
+  getState(): number;
+  setState(state: number): void;
+}
+
+export function seededRandom(seed: number): RandomSource {
   let state = seed >>> 0;
-  return () => {
-    state += 0x6d2b79f5;
+  const random = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
     let t = state;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  random.getState = () => state;
+  random.setState = (value: number) => {
+    state = value >>> 0;
+  };
+  return random;
 }
 
 export class Terrain {
@@ -46,7 +57,7 @@ export class Terrain {
     return this.cells[Math.floor(y) * this.width + Math.floor(x)] ?? 0;
   }
 
-  generate(seed: number): void {
+  generate(seed: number, teamSize: 2 | 4 = 4): void {
     this.cells.fill(0);
     this.tops.fill(this.height);
     const random = seededRandom(seed);
@@ -101,13 +112,26 @@ export class Terrain {
       if (random() > 0.4)
         this.carve(x + radius * 0.9, y + 12, radius * 0.65, false);
     }
-    // Find roomy, dry shelves in four separated bands; never spawn inside a gap.
-    this.spawnXs = [
-      [150, 340],
-      [485, 685],
-      [930, 1120],
-      [1290, 1450],
-    ].map(([lo, hi]) => {
+    // Separated supported shelves with comparable margins at both world edges.
+    const bands =
+      teamSize === 4
+        ? [
+            [180, 220],
+            [290, 330],
+            [480, 550],
+            [635, 695],
+            [905, 965],
+            [1050, 1120],
+            [1270, 1310],
+            [1380, 1420],
+          ]
+        : [
+            [180, 340],
+            [485, 685],
+            [930, 1120],
+            [1260, 1420],
+          ];
+    this.spawnXs = bands.map(([lo, hi]) => {
       const preferred = lo + random() * (hi - lo);
       let best = (lo + hi) / 2,
         score = Infinity;
