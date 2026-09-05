@@ -1,8 +1,12 @@
-# Worms — project planning
+# Worms — Burrow Brawl prototype
 
 An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The proposed game uses Three.js to render a fully 2D illustrated world.
 
-**Status: scope and concept development. There is no playable build yet.**
+**Status: a local 2-versus-2 prototype is playable.** It includes destructible terrain, four items, a computer opponent, original 2D texture art and procedural sound, and a full match/results/rematch flow.
+
+## Play locally
+
+With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. Open the local URL printed by the server. See the [prototype guide](docs/PROTOTYPE.md) for controls, validation, and current limits.
 
 `Worms` is the requested repository name. A distinct public game title will be chosen before launch; **Burrow Brawl** is a provisional creative suggestion. This project is independent of Team17 and the Worms franchise. Art, dialogue, audio, characters, and implementation are to be original.
 
@@ -21,8 +25,8 @@ An independent browser artillery game inspired specifically by **[Worms Armagedd
 
 One player commands four characters against a challenging computer-controlled team of four. Short turns, wind, arcing projectiles, craters, caves, knockback, and well-timed banter create matches designed to last around 15–25 minutes. One fixed opponent difficulty; no account or game server required.
 
-The first implementation milestone is much smaller: a complete 2-versus-2 match on one terrain theme, with four core items, original character movement, and a basic fair opponent. Its purpose is to prove the feel before expanding the game.
+The implemented prototype is smaller: a complete 2-versus-2 match on one terrain theme, with four core items, original character movement, and a basic fair opponent. Its purpose is to prove the feel before expanding the game.
 
 ## Publication and reuse
 
-This is a public planning repository. A software license and separate asset terms have not yet been selected. Public visibility is not a claim that third-party material may be reused. Asset provenance and dependency license review are part of the delivery plan.
+This is a public source and planning repository. A software license and separate original-asset terms have not yet been selected. Third-party font and Three.js notices are preserved in `public/licenses`; runtime asset provenance is recorded in `assets/manifests/prototype.json`.

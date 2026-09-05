@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "status": "local-playable-prototype",
+  "assets": [
+    {
+      "id": "worm-cast",
+      "kind": "procedural-2d-texture",
+      "source": "src/render/art.ts",
+      "origin": "original prototype artwork",
+      "creator": "Project",
+      "runtime": "Canvas textures rendered by Three.js",
+      "review": "reviewed at gameplay scale"
+    },
+    {
+      "id": "moonlit-garden",
+      "kind": "procedural-2d-environment",
+      "source": "src/render/art.ts",
+      "origin": "original prototype artwork",
+      "creator": "Project",
+      "runtime": "Seeded terrain and illustrated sky textures",
+      "review": "terrain appearance and collision share occupancy"
+    },
+    {
+      "id": "four-items",
+      "kind": "procedural-2d-texture",
+      "source": "src/render/art.ts",
+      "origin": "original prototype artwork",
+      "creator": "Project",
+      "runtime": "Weapon and HUD textures",
+      "review": "four distinct item silhouettes"
+    },
+    {
+      "id": "effects",
+      "kind": "procedural-audio",
+      "source": "src/audio.ts",
+      "origin": "original synthesis",
+      "creator": "Project",
+      "runtime": "Web Audio oscillators and noise",
+      "review": "user-gesture audio start and mute control"
+    },
+    {
+      "id": "banter",
+      "kind": "text",
+      "source": "src/main.ts",
+      "origin": "original writing",
+      "creator": "Project",
+      "runtime": "Contextual captions",
+      "review": "no copied dialogue or recorded voice"
+    },
+    {
+      "id": "dm-sans",
+      "kind": "font",
+      "origin": "third-party OFL font via Fontsource",
+      "source": "https://github.com/googlefonts/dm-fonts",
+      "license": "SIL Open Font License 1.1",
+      "notice": "public/licenses/dm-sans.txt"
+    },
+    {
+      "id": "space-grotesk",
+      "kind": "font",
+      "origin": "third-party OFL font via Fontsource",
+      "source": "https://github.com/floriankarsten/space-grotesk",
+      "license": "SIL Open Font License 1.1",
+      "notice": "public/licenses/space-grotesk.txt"
+    }
+  ],
+  "notes": [
+    "The software and original-asset distribution license remains a project decision; third-party licenses are preserved separately.",
+    "Earlier generated concept studies remain in docs/concepts and are not runtime assets."
+  ]
+}

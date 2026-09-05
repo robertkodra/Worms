@@ -1,12 +1,12 @@
 # Delivery plan
 
-Status: proposed work, not completed implementation. The scope is governed by [SCOPE.md](../docs/SCOPE.md). Milestones close on observable results, not on an assumed calendar duration.
+Status: the first local 2-versus-2 prototype is implemented; see [the prototype guide](../docs/PROTOTYPE.md) for measured evidence and remaining limits. P0 is complete. P1/P2 have an initial playable implementation and await hands-on feel feedback; later milestones remain planned. The scope is governed by [SCOPE.md](../docs/SCOPE.md). Milestones close on observable results, not on an assumed calendar duration.
 
 ## P0 — Scope and repository
 
 Deliver the concept, game design, architecture, asset inventory, hosting recommendation, public repository guardrails, and a visual study. Record the fully 2D direction and single fixed computer difficulty. Review repository content before publication.
 
-Exit: a concrete scope the project owner can review. This is the current phase; later tasks below remain pending.
+Exit: a concrete scope the project owner can review. Completed; the accepted direction is now being tested in the first local prototype.
 
 ## P1 — Prove movement and destruction
 
