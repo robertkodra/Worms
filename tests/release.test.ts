@@ -1,8 +1,28 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { Game } from "../src/game/simulation";
+import { Game, GameSnapshot } from "../src/game/simulation";
 import { encodeSave, decodeSave } from "../src/game/save";
 import { readBindings, DEFAULT_BINDINGS } from "../src/input";
 import { BackgroundPlanner } from "../src/game/planner";
+
+function expectSameSnapshot(
+  actual: GameSnapshot,
+  expected: GameSnapshot,
+): void {
+  // Compare all 1.44 million collision bytes natively. Object-by-object test
+  // matcher traversal can exceed the timeout on shared CI runners.
+  expect(
+    Buffer.from(actual.terrain.cells).equals(
+      Buffer.from(expected.terrain.cells),
+    ),
+  ).toBe(true);
+  expect({
+    ...actual,
+    terrain: { ...actual.terrain, cells: undefined },
+  }).toEqual({
+    ...expected,
+    terrain: { ...expected.terrain, cells: undefined },
+  });
+}
 
 function advanceTurn(game: Game): void {
   const turn = game.turn;
@@ -72,11 +92,11 @@ describe("recoverable saves", () => {
     expect(encoded.length).toBeLessThan(30000);
     const restored = decodeSave(encoded);
     expect(restored.theme).toBe("frost");
-    expect(restored.game.snapshot()).toEqual(game.snapshot());
+    expectSameSnapshot(restored.game.snapshot(), game.snapshot());
     expect(restored.game.random()).toBe(game.random());
     advanceTurn(game);
     advanceTurn(restored.game);
-    expect(restored.game.snapshot()).toEqual(game.snapshot());
+    expectSameSnapshot(restored.game.snapshot(), game.snapshot());
   });
   it.each(["rocket", "cluster", "dynamite", "airstrike"] as const)(
     "resumes an in-flight %s snapshot deterministically",
@@ -89,7 +109,7 @@ describe("recoverable saves", () => {
         game.tick();
         restored.tick();
       }
-      expect(restored.snapshot()).toEqual(game.snapshot());
+      expectSameSnapshot(restored.snapshot(), game.snapshot());
     },
   );
   it("rejects truncated, oversized, invalid and incompatible data", () => {

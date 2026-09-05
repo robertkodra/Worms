@@ -34,7 +34,9 @@ describe("terrain is the authoritative collision and destruction map", () => {
   it("generates identical playable terrain and supported spawns from a seed", () => {
     const a = new Game(41823, { teamSize: 2 }),
       b = new Game(41823, { teamSize: 2 });
-    expect(a.terrain.cells).toEqual(b.terrain.cells);
+    expect(
+      Buffer.from(a.terrain.cells).equals(Buffer.from(b.terrain.cells)),
+    ).toBe(true);
     for (const w of a.worms) {
       expect(a.terrain.bodyCollides(w.x, w.y)).toBe(false);
       expect(a.terrain.bodyCollides(w.x, w.y + 3)).toBe(true);
@@ -230,7 +232,9 @@ describe("match progression", () => {
       ticks(g, 600);
     }
     expect(a.worms).toEqual(b.worms);
-    expect(a.terrain.cells).toEqual(b.terrain.cells);
+    expect(
+      Buffer.from(a.terrain.cells).equals(Buffer.from(b.terrain.cells)),
+    ).toBe(true);
     expect(a.turn).toBe(b.turn);
   });
   it("finishes complete 2v2 AI matches with finite state", () => {
