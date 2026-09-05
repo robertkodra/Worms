@@ -22,6 +22,12 @@ npm run preview
 
 The production build is static. Fonts, licenses, and spoken quips are bundled. It needs no backend, credentials, online AI or speech service. Production source maps are disabled.
 
+## Recording handoff and small follow-up
+
+The next voice pack is ready in [the recording script](voice/README.md), with 30 original lines, three possible performance styles and CSV/JSON exports. Voice production is parked while the owner generates clips. New wording will replace prototype captions and recordings together when the finished pack is integrated.
+
+The current game also shows visible countdowns beside grenades, cluster parents and TNT. Eliminated worms no longer deliver outgoing quips; turn handover and results still complete normally.
+
 ## What changed
 
 - **12 weapons/tools:** Seed Rocket, Pebble Popper, Bramble Blaster shotgun, Needle Rifle, Conker Cluster, Root TNT, Acorn Mortar, Seed Rain airstrike, Spore Shove, Leaf Bridge, Blink Bulb teleport, and Compost Cure.
@@ -82,7 +88,7 @@ If a bundled clip cannot load, the game attempts an available device-local Engli
 
 ## Validation
 
-- 41 automated tests cover the original simulation, 64 generated seeds and safe spawns, 12-item inventory, direct fire against thin walls and friendlies, shotgun spread/range, cluster lifecycle, TNT fuse/escape, airstrike/roof interception, shared projectile predictions, atomic teleport/healing, AI equipment scoring, safe navigation with preview/execution agreement, outcome classification, movement/landing sounds and audio cancellation.
+- 43 automated tests cover the original simulation, 64 generated seeds and safe spawns, 12-item inventory, direct fire against thin walls and friendlies, shotgun spread/range, cluster lifecycle, TNT fuse/escape, airstrike/roof interception, shared projectile predictions, atomic teleport/healing, AI equipment scoring, safe navigation with preview/execution agreement, outcome classification, movement/landing sounds and audio cancellation.
 - All30 speech files are checked against the dialogue bank, PCM header structure, non-silence and peak limits.
 - Three full seeded computer-policy matches in the simulation finish with finite valid state.
 - In-app browser checks exercised arsenal opening, category filtering, search/equip without firing, paused menu time, voice decoding/playback, the five-shell airstrike, computer movement/attack and outcome captions.

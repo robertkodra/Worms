@@ -737,15 +737,19 @@ export class Game {
               : enemyDamage > 0
                 ? "hit"
                 : "miss";
-      this.events.push({
-        type: "outcome",
-        x: actor.x,
-        y: actor.y,
-        actor: actor.id,
-        weapon: action.weapon,
-        outcome,
-        value: enemyDamage,
-      });
+      // An eliminated worm cannot deliver the outgoing reaction. The incoming
+      // living worm's greeting, or the result event, still follows normally.
+      if (actor.hp > 0) {
+        this.events.push({
+          type: "outcome",
+          x: actor.x,
+          y: actor.y,
+          actor: actor.id,
+          weapon: action.weapon,
+          outcome,
+          value: enemyDamage,
+        });
+      }
       this.action = null;
     }
     const living = [0, 1].map((team) =>

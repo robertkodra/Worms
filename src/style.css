@@ -1437,3 +1437,26 @@ dialog.arsenal-dialog {
   width: 135px;
   accent-color: #c8daa5;
 }
+
+.fuse-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  padding: 3px 6px;
+  border: 1px solid #f2d79d;
+  border-radius: 5px;
+  background: #203740ed;
+  color: #fff0c0;
+  font:
+    600 11px/1 "Space Grotesk",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px #10262c80;
+}
+.fuse-label.urgent {
+  color: #ffd1c4;
+  border-color: #ef9b87;
+  background: #643e3ced;
+}

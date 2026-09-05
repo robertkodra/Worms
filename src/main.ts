@@ -928,6 +928,7 @@ const readMatch = () => ({
   terrainRevision: game.terrain.revision,
   projectiles: game.projectiles.map((p) => ({
     kind: p.kind,
+    fuseSeconds: p.fuse > 0 ? Math.round(p.fuse / 6) / 10 : null,
     x: Math.round(p.x),
     y: Math.round(p.y),
   })),

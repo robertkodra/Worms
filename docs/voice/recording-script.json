@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "status": "ready-for-user-generation",
+  "voiceDefault": "cheeky-scout",
+  "instructions": "Speak only text. One clip per file. Direction and filename are not spoken. Keep the acting-worm perspective. This generation draft replaces prototype wording when the completed pack is imported.",
+  "lines": [
+    {
+      "file": "turn-0.wav",
+      "trigger": "Your turn begins",
+      "speaker": "The acting worm",
+      "delivery": "Quietly determined; tiny pause after Right.",
+      "text": "Right. Small steps."
+    },
+    {
+      "file": "turn-1.wav",
+      "trigger": "Your turn begins",
+      "speaker": "The acting worm",
+      "delivery": "Cheeky confidence; smile on improve.",
+      "text": "My turn to improve the view."
+    },
+    {
+      "file": "turn-2.wav",
+      "trigger": "Your turn begins",
+      "speaker": "The acting worm",
+      "delivery": "Puzzled accusation; stress who.",
+      "text": "All right, who moved the horizon?"
+    },
+    {
+      "file": "turn-3.wav",
+      "trigger": "Your turn begins",
+      "speaker": "The acting worm",
+      "delivery": "Overconfident; second sentence is the punchline.",
+      "text": "Confidence first. Accuracy later."
+    },
+    {
+      "file": "hit-0.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Cheerful mock courier; brisk finish.",
+      "text": "Special delivery. No signature needed!"
+    },
+    {
+      "file": "hit-1.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Surprised delight; stress almost.",
+      "text": "That was almost deliberate!"
+    },
+    {
+      "file": "hit-2.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Smug observation; play it casually.",
+      "text": "You've got a little crater on you."
+    },
+    {
+      "file": "hit-3.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Dry politeness; pause before the apology.",
+      "text": "Successful delivery. Very indirect apology."
+    },
+    {
+      "file": "hit-4.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Genuine relief, then pride.",
+      "text": "Oh good, the maths worked!"
+    },
+    {
+      "file": "hit-5.wav",
+      "trigger": "Your attack damaged the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Grand declaration from someone very small.",
+      "text": "Consider yourself thoroughly gardened."
+    },
+    {
+      "file": "miss-0.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Indignant; blame the target.",
+      "text": "Who put the target over there?"
+    },
+    {
+      "file": "miss-1.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Defensive first sentence; sheepish second.",
+      "text": "That was a warning. To the scenery."
+    },
+    {
+      "file": "miss-2.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Completely sincere, absurd excuse.",
+      "text": "I was aiming for next Thursday."
+    },
+    {
+      "file": "miss-3.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Quick excuse; firmer on Definitely.",
+      "text": "Wind. Definitely the wind."
+    },
+    {
+      "file": "miss-4.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Self-congratulation, then realization.",
+      "text": "Excellent shot. Wrong postcode."
+    },
+    {
+      "file": "miss-5.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Conspiratorial first sentence; dry punchline.",
+      "text": "Nobody saw that. Especially the target."
+    },
+    {
+      "file": "miss-6.wav",
+      "trigger": "Your attack missed the enemy",
+      "speaker": "The acting worm",
+      "delivery": "Nervous scientist pretending that was the test.",
+      "text": "Testing gravity. Still works!"
+    },
+    {
+      "file": "friendly-0.wav",
+      "trigger": "Your attack hurt you or your teammate",
+      "speaker": "The acting worm",
+      "delivery": "Startled, then embarrassed.",
+      "text": "That was not the plan!"
+    },
+    {
+      "file": "friendly-1.wav",
+      "trigger": "Your attack hurt you or your teammate",
+      "speaker": "The acting worm",
+      "delivery": "Trying very hard to minimize the disaster.",
+      "text": "A small setback. For our side."
+    },
+    {
+      "file": "friendly-2.wav",
+      "trigger": "Your attack hurt you or your teammate",
+      "speaker": "The acting worm",
+      "delivery": "Dry regret; stress Unfriendly.",
+      "text": "Friendly fire. Unfriendly review."
+    },
+    {
+      "file": "friendly-3.wav",
+      "trigger": "Your attack hurt you or your teammate",
+      "speaker": "The acting worm",
+      "delivery": "Awkward optimism; make team expense the joke.",
+      "text": "Let's call that a team expense."
+    },
+    {
+      "file": "skip-0.wav",
+      "trigger": "Your unused turn ends",
+      "speaker": "The acting worm",
+      "delivery": "Bluffing confidence; repeat Very tactical more quietly.",
+      "text": "A tactical pause. Very tactical."
+    },
+    {
+      "file": "skip-1.wav",
+      "trigger": "Your unused turn ends",
+      "speaker": "The acting worm",
+      "delivery": "Patient, smug and a little theatrical.",
+      "text": "I'll let the suspense do the damage."
+    },
+    {
+      "file": "skip-2.wav",
+      "trigger": "Your unused turn ends",
+      "speaker": "The acting worm",
+      "delivery": "Innocent whistling energy; obviously stalling.",
+      "text": "Just checking the soil."
+    },
+    {
+      "file": "utility-0.wav",
+      "trigger": "You built a bridge or teleported",
+      "speaker": "The acting worm",
+      "delivery": "Small, satisfied victory; stress big improvement.",
+      "text": "A small step. A big improvement."
+    },
+    {
+      "file": "utility-1.wav",
+      "trigger": "You built a bridge or teleported",
+      "speaker": "The acting worm",
+      "delivery": "Relieved and resourceful.",
+      "text": "A little room to improvise!"
+    },
+    {
+      "file": "utility-2.wav",
+      "trigger": "You built a bridge or teleported",
+      "speaker": "The acting worm",
+      "delivery": "Satisfied, then a doubtful Probably.",
+      "text": "Much better. Probably."
+    },
+    {
+      "file": "heal-0.wav",
+      "trigger": "You used a healing item",
+      "speaker": "The acting worm",
+      "delivery": "Relieved; little smile on Good as new.",
+      "text": "A little compost. Good as new."
+    },
+    {
+      "file": "heal-1.wav",
+      "trigger": "You used a healing item",
+      "speaker": "The acting worm",
+      "delivery": "Urgent Medic, then surprised self-correction.",
+      "text": "Medic! Oh wait, that's me."
+    },
+    {
+      "file": "heal-2.wav",
+      "trigger": "You used a healing item",
+      "speaker": "The acting worm",
+      "delivery": "Brisk confidence; mutter Slightly damp.",
+      "text": "Back in business. Slightly damp."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+file,trigger,speaker,delivery,text
+turn-0.wav,Your turn begins,The acting worm,Quietly determined; tiny pause after Right.,Right. Small steps.
+turn-1.wav,Your turn begins,The acting worm,Cheeky confidence; smile on improve.,My turn to improve the view.
+turn-2.wav,Your turn begins,The acting worm,Puzzled accusation; stress who.,"All right, who moved the horizon?"
+turn-3.wav,Your turn begins,The acting worm,Overconfident; second sentence is the punchline.,Confidence first. Accuracy later.
+hit-0.wav,Your attack damaged the enemy,The acting worm,Cheerful mock courier; brisk finish.,Special delivery. No signature needed!
+hit-1.wav,Your attack damaged the enemy,The acting worm,Surprised delight; stress almost.,That was almost deliberate!
+hit-2.wav,Your attack damaged the enemy,The acting worm,Smug observation; play it casually.,You've got a little crater on you.
+hit-3.wav,Your attack damaged the enemy,The acting worm,Dry politeness; pause before the apology.,Successful delivery. Very indirect apology.
+hit-4.wav,Your attack damaged the enemy,The acting worm,"Genuine relief, then pride.","Oh good, the maths worked!"
+hit-5.wav,Your attack damaged the enemy,The acting worm,Grand declaration from someone very small.,Consider yourself thoroughly gardened.
+miss-0.wav,Your attack missed the enemy,The acting worm,Indignant; blame the target.,Who put the target over there?
+miss-1.wav,Your attack missed the enemy,The acting worm,Defensive first sentence; sheepish second.,That was a warning. To the scenery.
+miss-2.wav,Your attack missed the enemy,The acting worm,"Completely sincere, absurd excuse.",I was aiming for next Thursday.
+miss-3.wav,Your attack missed the enemy,The acting worm,Quick excuse; firmer on Definitely.,Wind. Definitely the wind.
+miss-4.wav,Your attack missed the enemy,The acting worm,"Self-congratulation, then realization.",Excellent shot. Wrong postcode.
+miss-5.wav,Your attack missed the enemy,The acting worm,Conspiratorial first sentence; dry punchline.,Nobody saw that. Especially the target.
+miss-6.wav,Your attack missed the enemy,The acting worm,Nervous scientist pretending that was the test.,Testing gravity. Still works!
+friendly-0.wav,Your attack hurt you or your teammate,The acting worm,"Startled, then embarrassed.",That was not the plan!
+friendly-1.wav,Your attack hurt you or your teammate,The acting worm,Trying very hard to minimize the disaster.,A small setback. For our side.
+friendly-2.wav,Your attack hurt you or your teammate,The acting worm,Dry regret; stress Unfriendly.,Friendly fire. Unfriendly review.
+friendly-3.wav,Your attack hurt you or your teammate,The acting worm,Awkward optimism; make team expense the joke.,Let's call that a team expense.
+skip-0.wav,Your unused turn ends,The acting worm,Bluffing confidence; repeat Very tactical more quietly.,A tactical pause. Very tactical.
+skip-1.wav,Your unused turn ends,The acting worm,"Patient, smug and a little theatrical.",I'll let the suspense do the damage.
+skip-2.wav,Your unused turn ends,The acting worm,Innocent whistling energy; obviously stalling.,Just checking the soil.
+utility-0.wav,You built a bridge or teleported,The acting worm,"Small, satisfied victory; stress big improvement.",A small step. A big improvement.
+utility-1.wav,You built a bridge or teleported,The acting worm,Relieved and resourceful.,A little room to improvise!
+utility-2.wav,You built a bridge or teleported,The acting worm,"Satisfied, then a doubtful Probably.",Much better. Probably.
+heal-0.wav,You used a healing item,The acting worm,Relieved; little smile on Good as new.,A little compost. Good as new.
+heal-1.wav,You used a healing item,The acting worm,"Urgent Medic, then surprised self-correction.","Medic! Oh wait, that's me."
+heal-2.wav,You used a healing item,The acting worm,Brisk confidence; mutter Slightly damp.,Back in business. Slightly damp.

@@ -54,6 +54,7 @@ export class GameScene {
   private weapons: Record<Weapon, THREE.CanvasTexture>;
   private held: THREE.Mesh;
   private bullets: THREE.Sprite[] = [];
+  private fuseLabels: HTMLDivElement[] = [];
   private tracers: { line: THREE.Line; life: number }[] = [];
   private water: THREE.Mesh;
   private waterEdge: THREE.Line;
@@ -143,6 +144,11 @@ export class GameScene {
       bullet.scale.set(16, 10, 1);
       bullet.renderOrder = 8;
       bullet.visible = false;
+      const fuse = document.createElement("div");
+      fuse.className = "fuse-label";
+      fuse.hidden = true;
+      labelLayer.append(fuse);
+      this.fuseLabels.push(fuse);
       this.bullets.push(bullet);
       this.scene.add(bullet);
     }
@@ -284,6 +290,9 @@ export class GameScene {
       (tracer.line.material as THREE.Material).dispose();
     }
     this.tracers = [];
+    this.fuseLabels.forEach((label) => {
+      label.hidden = true;
+    });
   }
 
   event(event: GameEvent): void {
@@ -482,6 +491,15 @@ export class GameScene {
     }
     this.bullets.forEach((bullet, i) => {
       const p = game.projectiles[i];
+      const fuse = this.fuseLabels[i];
+      fuse.hidden = !p || p.fuse <= 0 || p.kind === "fragment";
+      if (!fuse.hidden) {
+        const position = this.worldToScreen(p.x, p.y - 24);
+        const side = position.x > this.width - 60 ? -30 : 30;
+        fuse.style.transform = `translate(${position.x + side}px,${position.y + 8}px) translate(-50%,-100%)`;
+        fuse.textContent = `${(p.fuse / 60).toFixed(1)}s`;
+        fuse.classList.toggle("urgent", p.fuse <= 60);
+      }
       bullet.visible = !!p;
       if (!p) return;
       bullet.position.set(p.x, WORLD_HEIGHT - p.y, 6);
@@ -563,6 +581,7 @@ export class GameScene {
         else m.dispose();
       }
     });
+    this.fuseLabels.forEach((label) => label.remove());
     this.wormTextures.forEach((t) => t.dispose());
     Object.values(this.weapons).forEach((t) => t.dispose());
     this.puff.dispose();

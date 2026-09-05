@@ -349,3 +349,32 @@ describe("AI review regressions", () => {
     expect(item.value.weapon).toBe("shove");
   });
 });
+
+describe("reaction lifecycle", () => {
+  it("does not make an eliminated outgoing worm speak, and still hands over the turn", () => {
+    const g = field();
+    const actor = g.activeId;
+    g.attack("sniper", -Math.PI / 2);
+    g.damage(g.active, 100);
+    finishTurn(g);
+    expect(
+      g.events.some((e) => e.type === "outcome" && e.actor === actor),
+    ).toBe(false);
+    expect(
+      g.events.some((e) => e.type === "turn" && e.actor === g.activeId),
+    ).toBe(true);
+    expect(g.turn).toBe(1);
+  });
+  it("still produces the result when the eliminated actor was the last team member", () => {
+    const g = field();
+    g.worms[1].hp = 0;
+    g.endTurn();
+    g.damage(g.active, 100);
+    finishTurn(g);
+    expect(g.events.some((e) => e.type === "outcome")).toBe(false);
+    expect(g.phase).toBe("over");
+    expect(g.events.some((e) => e.type === "result" && e.value === 1)).toBe(
+      true,
+    );
+  });
+});

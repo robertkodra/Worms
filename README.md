@@ -15,6 +15,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 - [Scope of work](docs/SCOPE.md) — experience, deliverables, boundaries, and acceptance criteria.
 - [Game design](docs/GAME_DESIGN.md) — rules, movement, weapons, personality, and interface.
 - [Technical design](docs/TECHNICAL_DESIGN.md) — simulation, terrain, rendering, and computer opponent.
+- [Voice recording pack](docs/voice/README.md) — 30 ready-to-generate lines, delivery notes, CSV and character directions.
 - [Asset plan](docs/ASSET_PLAN.md) — original 2D artwork, animation, effects, sound, and production inventory.
 - [Delivery plan](planning/ROADMAP.md) — ordered milestones and definition of done.
 - [Hosting](docs/HOSTING.md) — recommended deployment and future scaling.
