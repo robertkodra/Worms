@@ -1,5 +1,7 @@
 # Physics and impact update — 0.3.1
 
+Historical release record. The [0.5.1 jumping update](JUMPING.md) adds ledge handling, revised jump heights and the input buffer proposed below.
+
 The steep crater-side suspension reported in the playtest was a real collision bug. A falling capsule touching a sloping wall was marked grounded even without a walkable surface underneath. The step-up allowance also repeated within each movement substep, allowing near-vertical climbs.
 
 ## Fixed behavior

@@ -34,6 +34,7 @@ export interface Worm {
   hp: number;
   facing: number;
   grounded: boolean;
+  jumping: boolean; // voluntary rising jump; ends at apex, ceiling or impact
   walk: number;
   hurt: number;
   fallStart: number;
@@ -329,6 +330,7 @@ export class Game {
         hp: 100,
         facing: x < this.terrain.width / 2 ? 1 : -1,
         grounded: true,
+        jumping: false,
         walk: 0,
         hurt: 0,
         fallStart: feet,
@@ -392,6 +394,7 @@ export class Game {
       ...state
     } = snapshot;
     Object.assign(game, structuredClone(state));
+    for (const w of game.worms) w.jumping ??= false;
     game.random.setState(randomState);
     game.terrain.cells.set(terrain.cells);
     game.terrain.tops.fill(game.terrain.height);
@@ -433,7 +436,8 @@ export class Game {
     const w = this.active;
     if (!this.acting || w.hp <= 0 || !w.grounded) return false;
     w.grounded = false;
-    w.vy = backflip ? -217 : -171;
+    w.jumping = true;
+    w.vy = backflip ? -245 : -205;
     w.vx = w.facing * (backflip ? -61 : 103);
     w.fallStart = w.y;
     this.events.push({ type: "jump", x: w.x, y: w.y, actor: w.id });
@@ -561,6 +565,7 @@ export class Game {
       w.vx = 0;
       w.vy = 0;
       w.grounded = true;
+      w.jumping = false;
       w.fallStart = w.y;
       this.events.push({ type: "teleport", x: w.x, y: w.y - 14, actor: w.id });
     } else if (weapon === "medkit") {
@@ -649,6 +654,7 @@ export class Game {
           ? other.y
           : Math.min(other.fallStart, other.y);
         other.grounded = false;
+        other.jumping = false;
       }
       this.events.push({
         type: "shove",
@@ -684,6 +690,7 @@ export class Game {
     if (w.hp <= 0) return;
     const n = Math.min(w.hp, Math.max(0, Math.round(amount)));
     if (!n) return;
+    w.jumping = false;
     w.hp -= n;
     w.hurt = 0.7;
     this.stats.damage += n;
@@ -716,6 +723,7 @@ export class Game {
         const impulse = 245 * strength;
         w.vx += nx * impulse;
         w.vy += ny * impulse - 65 * strength;
+        w.jumping = false;
         if (strength > 0.02) {
           w.fallStart = w.grounded ? w.y : Math.min(w.fallStart, w.y);
           w.grounded = false;
@@ -753,6 +761,7 @@ export class Game {
       w.fallStart = Math.min(w.fallStart, w.y);
       w.vy += GRAVITY * STEP;
     }
+    if (w.grounded || w.vy >= 0) w.jumping = false;
     const steps = Math.max(
       1,
       Math.ceil((Math.max(Math.abs(w.vx), Math.abs(w.vy)) * STEP) / 0.8),
@@ -779,7 +788,11 @@ export class Game {
           }
         }
         if (!stepped) w.vx = 0;
-      } else w.vx = 0;
+      } else if (!w.jumping) w.vx = 0;
+      // A voluntary jump keeps its launch direction while rising against a
+      // ledge. Position still stops at solid pixels; forward travel resumes
+      // only once the feet clear. The assist ends at the apex, a ceiling, or
+      // any external impact, so it cannot lift a worm or steer knockback.
       const ny = w.y + w.vy * slice;
       if (!this.terrain.bodyCollides(w.x, ny)) w.y = ny;
       else if (w.vy > 0) {
@@ -796,6 +809,7 @@ export class Game {
             });
           if (!w.grounded && fall > 115) this.damage(w, (fall - 115) * 0.16);
           w.grounded = true;
+          w.jumping = false;
           w.vy = 0;
           w.vx *= 0.45;
           w.fallStart = w.y;
@@ -818,6 +832,7 @@ export class Game {
         }
       } else {
         w.vy = 0;
+        w.jumping = false;
         break;
       }
     }
@@ -958,6 +973,7 @@ export class Game {
           vy: 0,
           hp: 100,
           grounded: true,
+          jumping: false,
           fallStart: y,
         });
       }

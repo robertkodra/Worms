@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Ledge jumping](docs/JUMPING.md) — easier uphill jumps, backward high jumps and responsive input.
 - [Three-a-side and left arsenal](docs/LEFT_ARSENAL.md) — current match rules, compact weapon panel and controls.
 - [Scattered battlefields](docs/SCATTERED_FIELDS.md) — mixed crews, cave entrances, spawn safety and validation.
 - [Physics update](docs/PHYSICS.md) — crater-edge and grenade fixes, impact effects and next improvements.

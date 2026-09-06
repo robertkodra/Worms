@@ -101,6 +101,7 @@ export function decodeSave(text: string): SavedMatch {
     for (const key of ["x", "y", "vx", "vy", "fallStart"])
       requireValid(finite(w[key], -10000, 10000));
     requireValid(integer(w.hp, 0, 100) && (w.facing === -1 || w.facing === 1));
+    requireValid(w.jumping === undefined || typeof w.jumping === "boolean");
     requireValid(
       typeof w.grounded === "boolean" &&
         finite(w.walk, 0, 1e9) &&
@@ -207,6 +208,7 @@ export function decodeSave(text: string): SavedMatch {
       hp: w.hp,
       facing: w.facing,
       grounded: w.grounded,
+      jumping: w.jumping ?? false,
       walk: w.walk,
       hurt: w.hurt,
       fallStart: w.fallStart,

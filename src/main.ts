@@ -7,6 +7,7 @@ import {
   bindable,
   readBindings,
   keyLabel,
+  JumpBuffer,
 } from "./input";
 import {
   Game,
@@ -145,6 +146,7 @@ let aiRoute: Route | null = null,
 let arsenalOpen = false,
   arsenalCategory = "All";
 const lineCounts: Record<string, number> = {};
+const jumpInput = new JumpBuffer();
 let toastUntil = 0,
   banterUntil = 0,
   lastBanter = -10000;
@@ -205,6 +207,7 @@ function closeDialogs(): void {
 function cancelInput(): void {
   bindingCapture = null;
   keys.clear();
+  jumpInput.clear();
   charging = false;
   charge = 0;
   dragging = false;
@@ -1119,7 +1122,8 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
-  if (e.code === bindings.jump && game.active.team === 0) game.jump(e.shiftKey);
+  if (e.code === bindings.jump && game.active.team === 0)
+    jumpInput.request(game, movementDirection(), e.shiftKey);
   if (e.code === bindings.fire) beginCharge();
   if (e.code === bindings.recenter) scene.recenter(game, e.shiftKey);
   const slot = ["Digit1", "Digit2", "Digit3", "Digit4"].indexOf(e.code);
@@ -1163,6 +1167,16 @@ gameCanvas.addEventListener("webglcontextrestored", () => {
     "Graphics restored. Your match is ready to resume.";
   showToast("Graphics restored. Resume when you are ready.");
 });
+
+function movementDirection(): number {
+  const arrowsMove = WEAPONS[weapon].mode !== "place" || game.phase !== "aim";
+  return (
+    (keys.has(bindings.right) || (arrowsMove && keys.has("ArrowRight"))
+      ? 1
+      : 0) -
+    (keys.has(bindings.left) || (arrowsMove && keys.has("ArrowLeft")) ? 1 : 0)
+  );
+}
 
 function frame(time: number): void {
   const dt = Math.min(0.06, (time - lastTime) / 1000 || STEP);
@@ -1214,19 +1228,8 @@ function frame(time: number): void {
     accumulator += dt;
     let count = 0;
     while (accumulator >= STEP && count++ < 5) {
-      if (game.active.team === 0 && game.acting)
-        game.move(
-          (keys.has(bindings.right) ||
-          ((WEAPONS[weapon].mode !== "place" || game.phase !== "aim") &&
-            keys.has("ArrowRight"))
-            ? 1
-            : 0) -
-            (keys.has(bindings.left) ||
-            ((WEAPONS[weapon].mode !== "place" || game.phase !== "aim") &&
-              keys.has("ArrowLeft"))
-              ? 1
-              : 0),
-        );
+      if (game.active.team === 0 && game.acting) game.move(movementDirection());
+      jumpInput.tick(game);
       if (game.active.team === 1) {
         if (
           aiRoute &&
