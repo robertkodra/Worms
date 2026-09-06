@@ -2,7 +2,7 @@
 
 An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The game uses Three.js to render a fully 2D illustrated world.
 
-**Status: a local 3-versus-3 release candidate is playable.** It includes 12 weapons/tools in a compact left-side arsenal, mixed-team surface and cave starts, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
+**Status: a local 3-versus-3 release candidate is playable.** It includes a dedicated title menu with Play, Continue and Options; 12 weapons/tools in a compact left-side arsenal; mixed-team surface and cave starts; four seeded layouts in three scenery themes; a tactical computer with background shot planning; autosave/continue; editable names; a separate practice range; and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
 
 ## Play locally
 
@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Title menu](docs/TITLE_MENU.md) — standalone Play, Continue, Options and How to Play screens.
 - [Water effects](docs/WATER.md) — underwater fuses, pressure bursts, splashes and sinking worms.
 - [Ledge jumping](docs/JUMPING.md) — easier uphill jumps, backward high jumps and responsive input.
 - [Three-a-side and left arsenal](docs/LEFT_ARSENAL.md) — current match rules, compact weapon panel and controls.

@@ -1,4 +1,5 @@
 import "./style.css";
+import { titleScreenMarkup, MenuView } from "./ui/title";
 import {
   DEFAULT_BINDINGS,
   ACTION_LABELS,
@@ -44,7 +45,7 @@ const ICONS = {
 const svg = (name: keyof typeof ICONS) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 const root = document.querySelector<HTMLDivElement>("#app")!;
-root.innerHTML = `<main class="shell">
+root.innerHTML = `<main id="game-shell" class="shell" hidden inert>
   <header class="topbar">
     <div class="brand"><div class="brand-icon"><img id="brand-worm" alt="" /></div><div><div class="brand-word">BURROW <span>BRAWL</span></div><div class="edition">A small territorial dispute</div></div></div>
     <div class="top-status"><i class="live-dot"></i><strong id="environment-title">THE GARDEN AFTER HOURS</strong></div>
@@ -62,17 +63,17 @@ root.innerHTML = `<main class="shell">
     <div class="dock-area"><div class="aim-readout" id="aim-readout"><span>ANGLE <strong id="angle-readout">45°</strong></span><span>POWER <strong id="power-value">70%</strong><span class="power-track"><i id="power-bar"></i></span></span><span class="readout-note" id="weapon-hint">Hold F or click to charge</span></div></div><nav class="weapon-dock" id="weapon-dock" aria-label="Quick weapons and arsenal"></nav>
     <div class="toast" id="toast" role="status"></div>
   </section>
-  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 06</a></footer>
+  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 07</a></footer>
 </main>
-<dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Three worms on your side. Three with other ideas.<br>Scattered across ridges and burrows. Judge the wind, pick your shot, and leave your mark.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><details class="match-setup"><summary>Make it your battlefield</summary><label class="settings-row" for="theme-input">Scenery<select id="theme-input"><option value="garden">Moonlit garden</option><option value="canyon">Copper canyon</option><option value="frost">Frost hollow</option></select></label><div class="name-grid" id="crew-names"></div></details><p id="save-status" class="voice-note" role="status"></p><div class="start-actions"><button class="primary-button" id="continue-button" hidden>Continue saved skirmish</button><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="practice-button">Visit the practice range</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
-<dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><label class="settings-row">All sound<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Placeholder worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">Temporary voice pack. Replacement recordings are in progress; captions always stay on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><details class="match-setup"><summary>Keyboard controls</summary><div id="bindings"></div><p class="voice-note" id="binding-note">Select a control, then press a letter or Space. Arrows aim placed items; 1–4 select quick slots.</p><button class="shuffle-button" id="reset-bindings">Reset controls</button></details><p class="voice-note" id="checkpoint-note">Autosaved at the start of each of your turns.</p><div class="dialog-buttons"><button class="secondary-button" id="menu-button">Return to menu</button><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
-<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div class="dialog-inner"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list" id="help-controls"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Left arsenal · turn pauses</div><div><kbd>Right-click / drag · Wheel · R</kbd>Arsenal / pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. Both crews start scattered across the field. Cave ramps lead back outside; blasts can change the way out. Shuffle for a new layout and new positions, or replay the same seed. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></dialog>
-<dialog id="result-dialog" aria-labelledby="result-title"><div class="dialog-inner"><div class="eyebrow" id="result-eyebrow">The dust has settled</div><h2 class="dialog-heading" id="result-title">A small, decisive victory.</h2><p class="dialog-description" id="result-copy"></p><div class="stats-grid"><div><b id="stat-rounds">0</b><span>ROUNDS</span></div><div><b id="stat-shots">0</b><span>SHOTS</span></div><div><b id="stat-craters">0</b><span>NEW CRATERS</span></div></div><div class="dialog-buttons"><button class="primary-button" id="rematch-button">Same field. Settle the score. ${svg("arrow")}</button><button class="secondary-button" id="result-new">New battlefield</button></div></div></dialog>
+${titleScreenMarkup(svg("arrow"))}
+<dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><div id="pause-settings"><div id="settings-content"><label class="settings-row">All sound<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Placeholder worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">Temporary voice pack. Replacement recordings are in progress; captions always stay on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><details class="match-setup"><summary>Keyboard controls</summary><div id="bindings"></div><p class="voice-note" id="binding-note">Select a control, then press a letter or Space. Arrows aim placed items; 1–4 select quick slots.</p><button class="shuffle-button" id="reset-bindings">Reset controls</button></details></div></div><p class="voice-note" id="checkpoint-note">Autosaved at the start of each of your turns.</p><div class="dialog-buttons"><button class="secondary-button" id="menu-button">Return to menu</button><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div id="help-dialog-body"><div class="dialog-inner" id="help-content"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list" id="help-controls"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Left arsenal · turn pauses</div><div><kbd>Right-click / drag · Wheel · R</kbd>Arsenal / pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. Both crews start scattered across the field. Cave ramps lead back outside; blasts can change the way out. Shuffle for a new layout and new positions, or replay the same seed. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></div></dialog>
+<dialog id="result-dialog" aria-labelledby="result-title"><div class="dialog-inner"><div class="eyebrow" id="result-eyebrow">The dust has settled</div><h2 class="dialog-heading" id="result-title">A small, decisive victory.</h2><p class="dialog-description" id="result-copy"></p><div class="stats-grid"><div><b id="stat-rounds">0</b><span>ROUNDS</span></div><div><b id="stat-shots">0</b><span>SHOTS</span></div><div><b id="stat-craters">0</b><span>NEW CRATERS</span></div></div><div class="dialog-buttons"><button class="primary-button" id="rematch-button">Same field. Settle the score. ${svg("arrow")}</button><button class="secondary-button" id="result-new">New battlefield</button><button class="secondary-button" id="result-menu">Main menu</button></div></div></dialog>
 <dialog id="arsenal-dialog" class="arsenal-dialog" aria-labelledby="arsenal-title"><div class="arsenal-header"><div><div class="eyebrow">Choose your trouble</div><h2 id="arsenal-title">Arsenal <span id="arsenal-count">12 items</span></h2></div><button class="icon-button" id="close-arsenal" aria-label="Close arsenal">×</button></div><div class="arsenal-toolbar"><input type="search" id="arsenal-search" placeholder="Search kit…" aria-label="Search arsenal" /><select id="arsenal-category" aria-label="Weapon category"><option value="All">All weapons</option>${CATEGORIES.map((category) => `<option>${category}</option>`).join("")}</select></div><div class="arsenal-grid" id="arsenal-grid" aria-label="Available equipment"></div><div class="arsenal-detail" id="arsenal-detail" aria-live="polite" aria-atomic="true"></div><div class="arsenal-foot"><span><i></i> Turn paused</span><span>Arrows to browse · Enter to equip</span></div></dialog>`;
 
 const el = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
-const dialogs = ["start", "pause", "help", "result", "arsenal"].map((s) =>
+const dialogs = ["pause", "help", "result", "arsenal"].map((s) =>
   el<HTMLDialogElement>(`${s}-dialog`),
 );
 const field = el("battlefield"),
@@ -86,7 +87,9 @@ try {
     '<main class="compatibility"><h1>This garden needs WebGL 2.</h1><p>Please try a current desktop browser with hardware acceleration enabled.</p></main>';
   throw new Error("WebGL 2 unavailable");
 }
-el<HTMLImageElement>("brand-worm").src = wormArt(0).toDataURL();
+const mascot = wormArt(0).toDataURL();
+el<HTMLImageElement>("brand-worm").src = mascot;
+el<HTMLImageElement>("title-worm").src = mascot;
 const kinds = WEAPON_IDS;
 let quickSlots = [...QUICK_DEFAULT];
 function buildDock(): void {
@@ -150,7 +153,8 @@ const jumpInput = new JumpBuffer();
 let toastUntil = 0,
   banterUntil = 0,
   lastBanter = -10000;
-let helpReturn: "start" | "pause" | "game" = "start";
+let menuView: MenuView = "home";
+let helpReturn: "pause" | "game" = "game";
 let resultShown = false,
   wasHidden = false;
 
@@ -205,13 +209,62 @@ function closeDialogs(): void {
   el("arsenal-button")?.setAttribute("aria-expanded", "false");
 }
 function cancelInput(): void {
-  bindingCapture = null;
+  if (bindingCapture) {
+    bindingCapture = null;
+    renderBindings();
+    el("binding-note").textContent =
+      "Control change cancelled. Select a control to try again.";
+  }
   keys.clear();
   jumpInput.clear();
   charging = false;
   charge = 0;
   dragging = false;
   accumulator = 0;
+}
+function showMenuView(view: MenuView): void {
+  const previous = menuView;
+  cancelInput();
+  menuView = view;
+  for (const name of ["home", "play", "options", "help"])
+    el(`menu-${name}`).hidden = name !== view;
+  el("menu-back").hidden = view === "home";
+  if (view === "options") {
+    el("menu-options-body").append(el("settings-content"));
+    syncSettings();
+  } else if (view === "help") {
+    el("menu-help-body").append(el("help-content"));
+  }
+  el("title-screen").scrollTop = 0;
+  const focusTarget =
+    view === "home"
+      ? previous === "options"
+        ? "options-button"
+        : previous === "help"
+          ? "start-help"
+          : "play-button"
+      : view === "help"
+        ? "help-title"
+        : `menu-${view}-title`;
+  const heading = el(focusTarget);
+  if (heading.tagName === "H2") heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
+}
+function returnToMenu(): void {
+  running = false;
+  paused = false;
+  backgroundPlanner.cancel();
+  workerPending = false;
+  planner = null;
+  cancelInput();
+  audio.suspend();
+  closeDialogs();
+  el("game-shell").hidden = true;
+  el("game-shell").inert = true;
+  el("title-screen").hidden = false;
+  el("title-screen").inert = false;
+  refreshContinue();
+  showMenuView("home");
 }
 function pause(): void {
   if (!running || game.phase === "over") return;
@@ -220,6 +273,7 @@ function pause(): void {
   audio.suspend();
   syncSettings();
   closeDialogs();
+  el("pause-settings").append(el("settings-content"));
   el<HTMLDialogElement>("pause-dialog").showModal();
 }
 function resume(): void {
@@ -234,24 +288,25 @@ function resume(): void {
   field.querySelector("canvas")?.focus();
 }
 function showHelp(): void {
-  helpReturn = el<HTMLDialogElement>("start-dialog").open
-    ? "start"
-    : paused
-      ? "pause"
-      : "game";
+  if (!running) {
+    showMenuView("help");
+    return;
+  }
+  helpReturn = paused ? "pause" : "game";
   paused = true;
   cancelInput();
   audio.suspend();
   closeDialogs();
+  el("help-dialog-body").append(el("help-content"));
   el<HTMLDialogElement>("help-dialog").showModal();
 }
 function closeHelp(): void {
+  if (!running) {
+    showMenuView("home");
+    return;
+  }
   el<HTMLDialogElement>("help-dialog").close();
-  if (helpReturn === "start") {
-    paused = false;
-    el<HTMLDialogElement>("start-dialog").showModal();
-  } else if (helpReturn === "pause")
-    el<HTMLDialogElement>("pause-dialog").showModal();
+  if (helpReturn === "pause") el<HTMLDialogElement>("pause-dialog").showModal();
   else resume();
 }
 function showToast(text: string): void {
@@ -414,6 +469,12 @@ function start(
   }
   buildTeamBars();
   running = true;
+  el("title-screen").hidden = true;
+  el("title-screen").inert = true;
+  el("game-shell").hidden = false;
+  el("game-shell").inert = false;
+  el("pause-settings").append(el("settings-content"));
+  el("help-dialog-body").append(el("help-content"));
   paused = false;
   resultShown = false;
   lastTurn = -1;
@@ -679,7 +740,13 @@ function showResult(): void {
   el<HTMLDialogElement>("result-dialog").showModal();
 }
 
-el("start-button").onclick = () => start();
+el("play-button").onclick = () => showMenuView("play");
+el("options-button").onclick = () => showMenuView("options");
+el("menu-back").onclick = () => showMenuView("home");
+el<HTMLFormElement>("match-form").onsubmit = (event) => {
+  event.preventDefault();
+  start();
+};
 el("start-help").onclick = showHelp;
 el("help-button").onclick = showHelp;
 el("close-help").onclick = closeHelp;
@@ -691,6 +758,7 @@ el("rematch-button").onclick = () => start(game.seed);
 el("new-button").onclick = () =>
   start(randomSeed(game.seed), undefined, game.mode);
 el("result-new").onclick = () => start(randomSeed(game.seed));
+el("result-menu").onclick = returnToMenu;
 el("sound-button").onclick = () => {
   audio.unlock();
   audio.setMuted(!audio.muted);
@@ -804,13 +872,8 @@ el<HTMLInputElement>("voice-setting").onchange = (e) => {
   storeSettings();
 };
 el("shuffle-seed").onclick = () => {
-  game = new Game(randomSeed(game.seed));
-  buildTeamBars();
-  scene.reset();
-  el<HTMLInputElement>("seed-input").value = String(game.seed);
-  el("field-seed").textContent = String(game.seed);
-  el("map-layout").textContent =
-    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : `${game.teamSize}v${game.teamSize} skirmish`}`;
+  const input = el<HTMLInputElement>("seed-input");
+  input.value = String(randomSeed(Number(input.value)));
 };
 function renderBindings(): void {
   const guide = [
@@ -917,29 +980,32 @@ function checkpoint(): void {
 function refreshContinue(): void {
   const button = el<HTMLButtonElement>("continue-button");
   button.hidden = true;
+  el("save-status").textContent = "";
+  el("new-match-note").textContent =
+    "Skirmishes save at the start of your turn. Practice keeps your saved match.";
   try {
     const text = localStorage.getItem(SAVE_KEY);
-    if (!text) {
-      el("save-status").textContent =
-        "Skirmishes autosave at the start of your turn, on this browser.";
-      return;
-    }
+    if (!text) return;
     const saved = decodeSave(text);
     button.hidden = false;
-    button.textContent = `Continue ${saved.game.teamSize}v${saved.game.teamSize} · round ${saved.game.round}`;
-    el("save-status").textContent =
-      `Saved ${new Date(saved.savedAt).toLocaleString()} · field ${saved.game.seed}`;
+    el("continue-meta").textContent =
+      `${saved.game.teamSize}v${saved.game.teamSize} · ROUND ${saved.game.round}`;
+    button.title = `Resume field ${saved.game.seed}, saved ${new Date(saved.savedAt).toLocaleString()}`;
+    el("new-match-note").textContent =
+      "Starting a new skirmish replaces your saved match. Practice keeps it.";
   } catch {
     el("save-status").textContent =
       "The saved match could not be opened. You can start a fresh skirmish.";
   }
 }
-el("practice-button").onclick = () =>
+el("practice-button").onclick = () => {
+  if (!el<HTMLFormElement>("match-form").reportValidity()) return;
   start(
     Number(el<HTMLInputElement>("seed-input").value),
     undefined,
     "practice",
   );
+};
 el("continue-button").onclick = () => {
   try {
     const saved = decodeSave(localStorage.getItem(SAVE_KEY) ?? "");
@@ -949,17 +1015,7 @@ el("continue-button").onclick = () => {
     refreshContinue();
   }
 };
-el("menu-button").onclick = () => {
-  running = false;
-  paused = false;
-  backgroundPlanner.cancel();
-  workerPending = false;
-  cancelInput();
-  audio.suspend();
-  closeDialogs();
-  refreshContinue();
-  el<HTMLDialogElement>("start-dialog").showModal();
-};
+el("menu-button").onclick = returnToMenu;
 for (const [team, names] of DEFAULT_NAMES.entries())
   for (const [index, name] of names.slice(0, 3).entries()) {
     const label = document.createElement("label"),
@@ -969,12 +1025,8 @@ for (const [team, names] of DEFAULT_NAMES.entries())
     input.value = name;
     input.maxLength = 16;
     label.append(input);
-    el("crew-names").append(label);
+    el(team === 0 ? "crew-names" : "rival-names").append(label);
   }
-el<HTMLSelectElement>("theme-input").onchange = () => {
-  theme = el<HTMLSelectElement>("theme-input").value as Theme;
-  scene.setTheme(theme);
-};
 buildTeamBars();
 refreshContinue();
 buildDock();
@@ -1089,12 +1141,17 @@ window.addEventListener("keydown", (e) => {
   }
   if (e.code === "Escape") {
     e.preventDefault();
+    if (!running) {
+      if (menuView !== "home") showMenuView("home");
+      return;
+    }
     if (arsenalOpen) closeArsenal();
     else if (el<HTMLDialogElement>("help-dialog").open) closeHelp();
     else if (el<HTMLDialogElement>("pause-dialog").open) resume();
     else if (running && !paused) pause();
     return;
   }
+  if (!running) return;
   if (
     e.target instanceof HTMLInputElement ||
     e.target instanceof HTMLSelectElement ||
@@ -1287,7 +1344,7 @@ function frame(time: number): void {
     game.events = [];
   }
   const displayAngle = game.active.team === 1 ? aiAim : angle;
-  if (graphicsAvailable)
+  if (graphicsAvailable && running)
     scene.render(
       game,
       displayAngle,
@@ -1296,17 +1353,22 @@ function frame(time: number): void {
       time,
       running && !paused && !arsenalOpen,
     );
-  if (time - lastHud > 65) {
+  if (running && time - lastHud > 65) {
     updateHud();
     lastHud = time;
   }
   if (time > toastUntil) el("toast").classList.remove("show");
   if (time > banterUntil) el("banter").classList.remove("show");
-  if (game.phase === "over" && !resultShown && !scene.waterSequenceActive)
+  if (
+    running &&
+    game.phase === "over" &&
+    !resultShown &&
+    !scene.waterSequenceActive
+  )
     showResult();
   requestAnimationFrame(frame);
 }
-el<HTMLDialogElement>("start-dialog").showModal();
+showMenuView("home");
 requestAnimationFrame(frame);
 
 // Read-only inspection supports browser smoke tests; no cheat controls are

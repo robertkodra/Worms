@@ -251,8 +251,10 @@ export class GameScene {
   }
 
   private resize(): void {
-    this.width = this.container.clientWidth;
-    this.height = this.container.clientHeight;
+    // The battlefield is hidden on the title screen. Keep its camera finite
+    // until ResizeObserver receives the visible game dimensions.
+    this.width = Math.max(1, this.container.clientWidth);
+    this.height = Math.max(1, this.container.clientHeight);
     this.renderer.setSize(this.width, this.height);
     this.updateCamera();
   }
