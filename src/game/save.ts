@@ -140,6 +140,22 @@ export function decodeSave(text: string): SavedMatch {
       t.spawnXs.length === n &&
       t.spawnXs.every((x: unknown) => finite(x, 0, WORLD_WIDTH)),
   );
+  // Earlier version-1 saves only stored horizontal spawn coordinates. Their
+  // live worm positions and terrain remain authoritative when continuing.
+  if (t.spawnPoints !== undefined)
+    requireValid(
+      Array.isArray(t.spawnPoints) &&
+        t.spawnPoints.length === n &&
+        t.spawnPoints.every(
+          (p: unknown, id: number) =>
+            record(p) &&
+            finite(p.x, 0, WORLD_WIDTH) &&
+            p.x === t.spawnXs[id] &&
+            finite(p.y, 0, WORLD_HEIGHT) &&
+            typeof p.underground === "boolean" &&
+            (p.exitX === null || finite(p.exitX, 0, WORLD_WIDTH)),
+        ),
+    );
   requireValid(
     Array.isArray(t.cells) && t.cells.length <= WORLD_WIDTH * WORLD_HEIGHT,
   );
@@ -166,6 +182,17 @@ export function decodeSave(text: string): SavedMatch {
       revision: t.revision,
       layout: t.layout,
       spawnXs: t.spawnXs,
+      spawnPoints: t.spawnXs.map((x: number, id: number) => {
+        const p = t.spawnPoints?.[id];
+        return p
+          ? { x: p.x, y: p.y, underground: p.underground, exitX: p.exitX }
+          : {
+              x,
+              y: Math.max(0, Math.min(WORLD_HEIGHT, s.worms[id].y)),
+              underground: false,
+              exitX: null,
+            };
+      }),
     },
     worms: s.worms.map((w: any) => ({
       id: w.id,

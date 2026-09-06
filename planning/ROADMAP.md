@@ -1,6 +1,6 @@
 # Delivery plan
 
-Status: Skirmish 03 implements the 4v4 rules, background shot planner, three scenery themes, practice, local names, rebinding and exact turn-start save/resume. See [the release record](../docs/RELEASE.md) for current measured evidence and launch gates. P0 is complete; P1–P5 have playable implementations with remaining human-feel, final-audio and browser/performance acceptance checks. P6 has static configuration and CI but no hosted deployment.
+Status: Skirmish 04 adds mixed-team surface/cave spawns and validated cave entrances. Skirmish 03 implements the 4v4 rules, background shot planner, three scenery themes, practice, local names, rebinding and exact turn-start save/resume. See [the release record](../docs/RELEASE.md) for current measured evidence and launch gates. P0 is complete; P1–P5 have playable implementations with remaining human-feel, final-audio and browser/performance acceptance checks. P6 has static configuration and CI but no hosted deployment.
 
 ## Prototype 02 — Accepted playtest expansion
 

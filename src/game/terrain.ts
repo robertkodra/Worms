@@ -4,6 +4,14 @@ export const INITIAL_WATER = 802;
 export const WORM_RADIUS = 9;
 export const WORM_HEIGHT = 28;
 
+export interface SpawnPoint {
+  x: number;
+  y: number;
+  underground: boolean;
+  /** The walking entrance of an intact generated cave; null on the surface. */
+  exitX: number | null;
+}
+
 export interface RandomSource {
   (): number;
   getState(): number;
@@ -31,7 +39,11 @@ export class Terrain {
   readonly tops: Int32Array;
   revision = 0;
   layout = "Twin gardens";
-  spawnXs: number[] = [265, 535, 1080, 1360];
+  spawnPoints: SpawnPoint[] = [];
+  // Retained in version-1 saves for compatibility with the earlier release.
+  get spawnXs(): number[] {
+    return this.spawnPoints.map((p) => p.x);
+  }
 
   constructor(
     readonly width = WORLD_WIDTH,
@@ -101,54 +113,188 @@ export class Terrain {
       this.tops[x] = top;
       for (let y = top; y < 862; y++) this.cells[y * this.width + x] = 1;
     }
-    // Deep seeded cave chains change underground routes without removing spawn support.
-    for (let i = 0; i < 5; i++) {
-      const x = 170 + random() * (this.width - 340);
-      const surface = this.surface(x);
-      if (surface > 710) continue;
-      const y = Math.min(755, surface + 135 + random() * 65);
-      const radius = 32 + random() * 33;
-      this.carve(x, y, radius, false);
-      if (random() > 0.4)
-        this.carve(x + radius * 0.9, y + 12, radius * 0.65, false);
+    const caves = this.carveGalleries(random);
+    this.spawnPoints = this.scatterSpawns(random, teamSize, caves);
+    this.revision++;
+  }
+
+  /** Carve roomy galleries into land, with a gentle ramp back to daylight.
+   * Wavy roofs give each burrow a different silhouette; floors stay walkable. */
+  private carveGalleries(random: RandomSource) {
+    const spans: [number, number][] = [];
+    for (let x = 55; x < this.width - 55; x++) {
+      if (this.tops[x] >= INITIAL_WATER) continue;
+      const lo = x;
+      while (x < this.width - 55 && this.tops[x] < INITIAL_WATER) x++;
+      const count = Math.max(1, Math.round((x - lo) / 440));
+      for (let i = 0; i < count; i++)
+        spans.push([
+          Math.round(lo + ((x - lo) * i) / count) + 24,
+          Math.round(lo + ((x - lo) * (i + 1)) / count) - 24,
+        ]);
     }
-    // Separated supported shelves with comparable margins at both world edges.
-    const bands =
-      teamSize === 4
-        ? [
-            [180, 220],
-            [290, 330],
-            [480, 550],
-            [635, 695],
-            [905, 965],
-            [1050, 1120],
-            [1270, 1310],
-            [1380, 1420],
-          ]
-        : [
-            [180, 340],
-            [485, 685],
-            [930, 1120],
-            [1260, 1420],
-          ];
-    this.spawnXs = bands.map(([lo, hi]) => {
-      const preferred = lo + random() * (hi - lo);
-      let best = (lo + hi) / 2,
-        score = Infinity;
-      for (let x = lo; x <= hi; x += 2) {
-        const y = this.surface(x);
-        const l = this.surface(x - 18),
-          r = this.surface(x + 18);
-        if (Math.max(y, l, r) > INITIAL_WATER - 110) continue;
-        const cost = Math.abs(x - preferred) * 0.12 + Math.abs(l - r);
-        if (cost < score) {
-          best = x;
-          score = cost;
+    const caves: {
+      lo: number;
+      hi: number;
+      exitX: number;
+      floor: (x: number) => number;
+    }[] = [];
+    for (const [lo, hi] of spans) {
+      if (hi - lo < 205) continue;
+      const exitX = random() < 0.5 ? lo : hi;
+      const entrance = this.tops[exitX] - 2;
+      const depth = Math.min(
+        118 + random() * 18,
+        680 - entrance,
+        (hi - lo - 54) * 0.57,
+      );
+      if (depth < 78) continue;
+      const ramp = depth / 0.57;
+      const floor = (x: number) =>
+        Math.round(
+          entrance +
+            depth * Math.min(1, Math.abs(x - exitX) / ramp) +
+            2 * Math.sin((x - exitX) * 0.032),
+        );
+      const phase = random() * Math.PI * 2;
+      for (let x = lo; x <= hi; x++) {
+        const endDistance = exitX === lo ? hi - x : x - lo;
+        const height =
+          (74 + 13 * Math.sin(x * 0.027 + phase) + 7 * Math.sin(x * 0.064)) *
+          Math.sqrt(Math.min(1, endDistance / 38));
+        const bottom = floor(x);
+        const ceiling = Math.floor(bottom - height);
+        // Open thin roof slivers into daylight instead of leaving floating
+        // pixels at an entrance. Intact underground starts retain solid cover.
+        const top = ceiling - this.tops[x] < 24 ? this.tops[x] : ceiling;
+        for (let y = top; y < bottom; y++) this.cells[y * this.width + x] = 0;
+      }
+      caves.push({ lo, hi, exitX, floor });
+    }
+    return caves;
+  }
+
+  /** Find an actual capsule footing close to a proposed floor, including slopes. */
+  footing(x: number, floor: number): number | null {
+    for (let y = Math.floor(floor); y >= floor - 12; y--) {
+      if (this.bodyCollides(x, y)) continue;
+      const contact = this.bodyContact(x, y);
+      if (contact && contact.y < -0.75) return y;
+    }
+    return null;
+  }
+
+  private scatterSpawns(
+    random: RandomSource,
+    teamSize: 2 | 4,
+    caves: {
+      lo: number;
+      hi: number;
+      exitX: number;
+      floor: (x: number) => number;
+    }[],
+  ): SpawnPoint[] {
+    const candidates: SpawnPoint[] = [];
+    for (let x = 120; x <= this.width - 120; x += 8) {
+      for (let floor = this.tops[x]; floor <= INITIAL_WATER - 120; floor++) {
+        if (!this.solid(x, floor) || this.solid(x, floor - 1)) continue;
+        const y = this.footing(x, floor);
+        if (y === null || this.bodyCollides(x, y - 12)) continue;
+        // Room on both sides, away from a cliff edge or a narrow stalagmite.
+        if (
+          [-18, 18].some((dx) => {
+            const neighbor = this.surface(x + dx, y - 18);
+            return (
+              Math.abs(neighbor - y) > 18 ||
+              this.footing(x + dx, neighbor) === null
+            );
+          })
+        )
+          continue;
+        const underground = this.surface(x) < y - WORM_HEIGHT - 8;
+        const cave = caves.find(
+          (c) =>
+            x >= c.lo + 24 && x <= c.hi - 24 && Math.abs(y - c.floor(x)) < 12,
+        );
+        if (underground && !cave) continue;
+        candidates.push({
+          x,
+          y,
+          underground,
+          exitX: underground ? cave!.exitX : null,
+        });
+      }
+    }
+    const shuffle = <T>(items: T[]): T[] => {
+      const out = [...items];
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    };
+    // Pick separated positions first. Team membership is assigned afterwards,
+    // never inferred from x; both teams receive the same number of cave starts.
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const selected: SpawnPoint[] = [];
+      // A field with too little intact cave cover gets surface starts for both
+      // teams. Never force one crew into an unsafe hole to satisfy a quota.
+      const caveCount =
+        attempt >= 80 ? 0 : teamSize === 4 && attempt < 20 ? 4 : 2;
+      for (const underground of [true, false]) {
+        const wanted = underground ? caveCount : teamSize * 2 - caveCount;
+        for (const p of shuffle(
+          candidates.filter((p) => p.underground === underground),
+        )) {
+          if (
+            selected.filter((s) => s.underground === underground).length ===
+            wanted
+          )
+            break;
+          if (selected.every((s) => Math.hypot(s.x - p.x, s.y - p.y) >= 120))
+            selected.push(p);
         }
       }
-      return best;
-    });
-    this.revision++;
+      if (
+        selected.length !== teamSize * 2 ||
+        selected.filter((p) => p.underground).length !== caveCount
+      )
+        continue;
+      const xs = selected.map((p) => p.x);
+      if (Math.max(...xs) - Math.min(...xs) < this.width * 0.65) continue;
+      for (let deal = 0; deal < 80; deal++) {
+        const points = shuffle(selected);
+        if (
+          points.slice(0, teamSize).filter((p) => p.underground).length !==
+          caveCount / 2
+        )
+          continue;
+        // Keep both crews spread across the field, even in a 2v2 practice
+        // match. This is a deal constraint, not a set of fixed spawn bands.
+        if (
+          [0, 1].some((team) => {
+            const xs = points
+              .slice(team * teamSize, (team + 1) * teamSize)
+              .map((p) => p.x);
+            return (
+              Math.min(...xs) >= this.width / 2 ||
+              Math.max(...xs) <= this.width / 2 ||
+              Math.max(...xs) - Math.min(...xs) < this.width * 0.35
+            );
+          })
+        )
+          continue;
+        const order = points
+          .map((p, id) => ({ ...p, team: id < teamSize ? 0 : 1 }))
+          .sort((a, b) => a.x - b.x);
+        const changes = order
+          .slice(1)
+          .filter((p, i) => p.team !== order[i].team).length;
+        if (changes < (teamSize === 4 ? 3 : 2)) continue;
+        return points;
+      }
+    }
+    throw new Error("Could not find safe scattered starting positions.");
   }
 
   carve(cx: number, cy: number, radius: number, update = true): number {

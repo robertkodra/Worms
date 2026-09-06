@@ -91,6 +91,26 @@ function positionScore(
   return score;
 }
 
+function seesEnemy(game: Game, actor: Pick<Worm, "x" | "y" | "team">): boolean {
+  return game.worms.some((enemy) => {
+    if (enemy.hp <= 0 || enemy.team === actor.team) return false;
+    const steps = Math.ceil(
+      Math.hypot(enemy.x - actor.x, enemy.y - actor.y) / 4,
+    );
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      if (
+        game.terrain.solid(
+          actor.x + (enemy.x - actor.x) * t,
+          actor.y - 18 + (enemy.y - actor.y) * t,
+        )
+      )
+        return false;
+    }
+    return true;
+  });
+}
+
 export function planMovement(game: Game, retreat = false): Route {
   const actor = game.active;
   let best: Route = {
@@ -121,6 +141,43 @@ export function planMovement(game: Game, retreat = false): Route {
           : "Finding a firing position";
       if (route.score > best.score + 0.25) best = route;
     }
+  // A sheltered bot with no view of an opponent should try its cave entrance
+  // before spending turns shooting the roof. Spawn metadata is only a hint:
+  // preview the full route against today's destructible terrain and occupants.
+  if (
+    !retreat &&
+    game.terrain.surface(actor.x) < actor.y - 36 &&
+    !seesEnemy(game, actor)
+  ) {
+    const entrances = [
+      ...new Set(
+        game.terrain.spawnPoints
+          .filter((p) => p.exitX !== null)
+          .map((p) => p.exitX!),
+      ),
+    ];
+    for (const exitX of entrances) {
+      if (Math.abs(exitX - actor.x) > 320) continue;
+      const walkingTicks = Math.min(
+        360,
+        Math.ceil((Math.abs(exitX - actor.x) * 60) / 52),
+      );
+      const direction = Math.sign(exitX - actor.x);
+      const commands = Array.from({ length: walkingTicks + 65 }, (_, tick) => ({
+        direction: tick < walkingTicks ? direction : 0,
+      }));
+      const route = previewRoute(game, commands);
+      if (!route || Math.abs(route.x - exitX) >= Math.abs(actor.x - exitX) - 32)
+        continue;
+      const exposed = game.terrain.surface(route.x) >= route.y - 36;
+      route.score =
+        positionScore(game, route, false) +
+        (exposed ? 18 : 0) +
+        (seesEnemy(game, { ...route, team: actor.team }) ? 8 : 0);
+      route.label = "Finding a way out of the burrow";
+      if (route.score > best.score + 0.25) best = route;
+    }
+  }
   return best;
 }
 

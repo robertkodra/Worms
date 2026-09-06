@@ -2,7 +2,7 @@
 
 An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The game uses Three.js to render a fully 2D illustrated world.
 
-**Status: a local 4-versus-4 release candidate is playable.** It includes 12 weapons/tools, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
+**Status: a local 4-versus-4 release candidate is playable.** It includes 12 weapons/tools, mixed-team surface and cave starts, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
 
 ## Play locally
 
@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Scattered battlefields](docs/SCATTERED_FIELDS.md) — mixed crews, cave entrances, spawn safety and validation.
 - [Physics update](docs/PHYSICS.md) — crater-edge and grenade fixes, impact effects and next improvements.
 - [Current release record](docs/RELEASE.md) — implemented features, evidence and remaining launch gates.
 - [Scope of work](docs/SCOPE.md) — experience, deliverables, boundaries, and acceptance criteria.

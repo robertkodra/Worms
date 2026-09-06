@@ -41,8 +41,10 @@ describe("release match rules", () => {
         expect(game.terrain.bodyCollides(w.x, w.y + 2)).toBe(true);
         expect(w.y).toBeLessThan(game.water - 100);
       }
-      expect(game.worms[0].x).toBeGreaterThanOrEqual(180);
-      expect(game.worms[7].x).toBeLessThanOrEqual(1420);
+      expect(Math.min(...game.worms.map((w) => w.x))).toBeGreaterThanOrEqual(
+        120,
+      );
+      expect(Math.max(...game.worms.map((w) => w.x))).toBeLessThanOrEqual(1480);
     }
   });
   it("cycles every surviving worm once after eliminations", () => {

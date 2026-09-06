@@ -312,9 +312,7 @@ export class Game {
           inventory[key] = -1;
     this.random = seededRandom(seed + 7919);
     this.terrain.generate(seed, this.teamSize);
-    this.terrain.spawnXs.forEach((x, id) => {
-      let feet = this.terrain.surface(x) - 1;
-      while (this.terrain.bodyCollides(x, feet)) feet--;
+    this.terrain.spawnPoints.forEach(({ x, y: feet }, id) => {
       this.worms.push({
         id,
         name: cleanName(
@@ -329,7 +327,7 @@ export class Game {
         vx: 0,
         vy: 0,
         hp: 100,
-        facing: id < this.teamSize ? 1 : -1,
+        facing: x < this.terrain.width / 2 ? 1 : -1,
         grounded: true,
         walk: 0,
         hurt: 0,
@@ -351,6 +349,7 @@ export class Game {
         revision: this.terrain.revision,
         layout: this.terrain.layout,
         spawnXs: [...this.terrain.spawnXs],
+        spawnPoints: this.terrain.spawnPoints.map((p) => ({ ...p })),
       },
       worms: this.worms.map((w) => ({ ...w })),
       projectiles: this.projectiles.map((p) => ({
@@ -405,7 +404,7 @@ export class Game {
           game.terrain.tops[x] = y;
     game.terrain.revision = terrain.revision;
     game.terrain.layout = terrain.layout;
-    game.terrain.spawnXs = [...terrain.spawnXs];
+    game.terrain.spawnPoints = terrain.spawnPoints.map((p) => ({ ...p }));
     return game;
   }
 
@@ -947,18 +946,11 @@ export class Game {
       this.action = null;
     }
     if (this.mode === "practice") {
-      // Targets reset between attempts; projectile and movement physics remain
-      // identical to skirmishes. If the range loses its footing, rebuild it.
-      if (
-        this.terrain.spawnXs.some(
-          (x) => this.terrain.surface(x) > this.water - 40,
-        )
-      )
-        this.terrain.generate(this.seed, this.teamSize);
+      // Rebuild the same seeded range so cave targets return to their original
+      // floor, with an intact exit, after an attempt changes the terrain.
+      this.terrain.generate(this.seed, this.teamSize);
       for (const w of this.worms) {
-        const x = this.terrain.spawnXs[w.id];
-        let y = this.terrain.surface(x) - 1;
-        while (this.terrain.bodyCollides(x, y)) y--;
+        const { x, y } = this.terrain.spawnPoints[w.id];
         Object.assign(w, {
           x,
           y,
