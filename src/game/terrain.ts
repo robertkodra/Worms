@@ -1,6 +1,7 @@
 export const WORLD_WIDTH = 1600;
 export const WORLD_HEIGHT = 900;
 export const INITIAL_WATER = 802;
+export const SEABED_Y = WORLD_HEIGHT - 18;
 export const WORM_RADIUS = 9;
 export const WORM_HEIGHT = 28;
 

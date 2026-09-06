@@ -3,6 +3,7 @@ import {
   WORLD_WIDTH,
   WORLD_HEIGHT,
   INITIAL_WATER,
+  SEABED_Y,
   seededRandom,
   RandomSource,
 } from "./terrain";
@@ -35,6 +36,7 @@ export interface Worm {
   facing: number;
   grounded: boolean;
   jumping: boolean; // voluntary rising jump; ends at apex, ceiling or impact
+  drowned: boolean;
   walk: number;
   hurt: number;
   fallStart: number;
@@ -50,6 +52,7 @@ export interface Projectile {
   fuse: number;
   resting: boolean;
   clearedOwner: boolean;
+  submergedTicks: number;
   trail: { x: number; y: number }[];
 }
 export interface GameEvent {
@@ -58,6 +61,7 @@ export interface GameEvent {
     | "jump"
     | "damage"
     | "death"
+    | "splash"
     | "fire"
     | "bridge"
     | "turn"
@@ -78,6 +82,8 @@ export interface GameEvent {
   endX?: number;
   endY?: number;
   outcome?: "hit" | "miss" | "friendly" | "skip" | "utility" | "heal";
+  medium?: "water";
+  waterLevel?: number;
 }
 export interface ShotResult {
   x: number;
@@ -147,6 +153,7 @@ export function createProjectile(
     fuse: BALLISTICS[weapon].fuse,
     resting: false,
     clearedOwner: false,
+    submergedTicks: 0,
     trail: [],
   };
 }
@@ -162,13 +169,35 @@ export function advanceProjectile(
   p.age++;
   const profile = BALLISTICS[p.kind];
   if (profile.fuse) p.fuse--;
+  const enterWater = () => {
+    p.submergedTicks = 1;
+    events?.push({
+      type: "splash",
+      x: p.x,
+      y: water,
+      value: Math.hypot(p.vx, p.vy),
+      waterLevel: water,
+    });
+    p.vx *= 0.28;
+    p.vy = clamp(p.vy * 0.24, -70, 90);
+  };
+  if (p.y >= water) {
+    if (!p.submergedTicks) enterWater();
+    else p.submergedTicks++;
+  } else p.submergedTicks = 0;
   if (p.resting) {
     const support = terrain.circleContact(p.x, p.y + 0.6, 3.2);
-    if (!support || support.y > -0.85) p.resting = false;
+    if (p.y < SEABED_Y - 4 && (!support || support.y > -0.85))
+      p.resting = false;
   }
   if (!p.resting) {
-    p.vx += wind * profile.wind * STEP;
-    p.vy += GRAVITY * STEP;
+    if (p.submergedTicks) {
+      p.vx *= 0.96;
+      p.vy = clamp((p.vy + 90 * STEP) * 0.96, -70, 70);
+    } else {
+      p.vx += wind * profile.wind * STEP;
+      p.vy += GRAVITY * STEP;
+    }
     const dx = p.vx * STEP,
       dy = p.vy * STEP;
     // Sub-pixel conservative sweep: radius >= 3 with samples <= 0.65 apart.
@@ -187,7 +216,8 @@ export function advanceProjectile(
           (w.id !== p.owner || p.clearedOwner) &&
           distanceToWorm(nx, ny, w) < 3.5,
       );
-      const hitTerrain = terrain.circleCollides(nx, ny, 3.2);
+      const hitBed = ny + 3.2 >= SEABED_Y;
+      const hitTerrain = hitBed || terrain.circleCollides(nx, ny, 3.2);
       if (hitWorm || hitTerrain) {
         if (!profile.bounce) return { x: nx, y: ny, hit: true, ticks: p.age };
         let normal: { x: number; y: number } | null;
@@ -198,7 +228,10 @@ export function advanceProjectile(
             length > 0.001
               ? { x: (nx - hitWorm.x) / length, y: (ny - cy) / length }
               : null;
-        } else normal = terrain.circleContact(nx, ny, 3.2);
+        } else
+          normal = hitBed
+            ? { x: 0, y: -1 }
+            : terrain.circleContact(nx, ny, 3.2);
         const speed = Math.hypot(p.vx, p.vy);
         normal ??=
           speed > 0 ? { x: -p.vx / speed, y: -p.vy / speed } : { x: 0, y: -1 };
@@ -208,7 +241,7 @@ export function advanceProjectile(
             tangentY = p.vy - inward * normal.y;
           p.vx = tangentX * 0.82 - inward * normal.x * 0.5;
           p.vy = tangentY * 0.82 - inward * normal.y * 0.5;
-          if (-inward > 28)
+          if (-inward > 28 && !p.submergedTicks)
             events?.push({ type: "bounce", x: p.x, y: p.y, value: -inward });
         }
         // Leave a small separation after contact. Without it a shallow
@@ -219,9 +252,11 @@ export function advanceProjectile(
           p.x = separatedX;
           p.y = separatedY;
         }
-        const support = hitTerrain
-          ? terrain.circleContact(p.x, p.y + 0.6, 3.2)
-          : null;
+        const support = hitBed
+          ? { x: 0, y: -1 }
+          : hitTerrain
+            ? terrain.circleContact(p.x, p.y + 0.6, 3.2)
+            : null;
         if (Math.hypot(p.vx, p.vy) < 22 && support && support.y < -0.85) {
           p.vy = 0;
           p.vx = 0;
@@ -231,17 +266,19 @@ export function advanceProjectile(
       }
       p.x = nx;
       p.y = ny;
+      if (!p.submergedTicks && p.y >= water) {
+        enterWater();
+        break; // Recompute the next sweep with the reduced entry velocity.
+      }
     }
   }
+  // Impact weapons plunge briefly before their underwater pressure burst.
+  // Timed weapons retain their original remaining fuse, including on the bed.
+  if (!profile.fuse && p.submergedTicks >= 12)
+    return { x: p.x, y: p.y, hit: true, ticks: p.age };
   if (p.fuse <= 0 && profile.fuse)
     return { x: p.x, y: p.y, hit: true, ticks: p.age };
-  if (
-    p.y > water + 15 ||
-    p.x < -100 ||
-    p.x > WORLD_WIDTH + 100 ||
-    p.y < -1800 ||
-    p.age > 720
-  )
+  if (p.x < -100 || p.x > WORLD_WIDTH + 100 || p.y < -1800 || p.age > 720)
     return { x: p.x, y: p.y, hit: false, ticks: p.age };
   return null;
 }
@@ -331,6 +368,7 @@ export class Game {
         facing: x < this.terrain.width / 2 ? 1 : -1,
         grounded: true,
         jumping: false,
+        drowned: false,
         walk: 0,
         hurt: 0,
         fallStart: feet,
@@ -394,7 +432,11 @@ export class Game {
       ...state
     } = snapshot;
     Object.assign(game, structuredClone(state));
-    for (const w of game.worms) w.jumping ??= false;
+    for (const w of game.worms) {
+      w.jumping ??= false;
+      w.drowned ??= false;
+    }
+    for (const p of game.projectiles) p.submergedTicks ??= 0;
     game.random.setState(randomState);
     game.terrain.cells.set(terrain.cells);
     game.terrain.tops.fill(game.terrain.height);
@@ -701,7 +743,16 @@ export class Game {
       value: n,
       actor: w.id,
     });
-    if (!w.hp) this.events.push({ type: "death", x: w.x, y: w.y, actor: w.id });
+    if (!w.hp)
+      this.events.push({
+        type: "death",
+        x: w.x,
+        y: w.y,
+        actor: w.id,
+        ...(w.drowned
+          ? { medium: "water" as const, waterLevel: this.water }
+          : {}),
+      });
   }
 
   explode(x: number, y: number, kind: ProjectileKind): void {
@@ -732,7 +783,15 @@ export class Game {
     }
     this.terrain.carve(x, y, radius);
     this.stats.craters++;
-    this.events.push({ type: "blast", x, y, value: radius });
+    this.events.push({
+      type: "blast",
+      x,
+      y,
+      value: radius,
+      ...(y >= this.water
+        ? { medium: "water" as const, waterLevel: this.water }
+        : {}),
+    });
   }
 
   endTurn(): void {
@@ -854,8 +913,18 @@ export class Game {
         w.vx *= 0.65;
       }
     } else w.fallStart = Math.min(w.fallStart, w.y);
-    if (w.y - 6 > this.water || w.x < -30 || w.x > WORLD_WIDTH + 30)
+    if (w.y - 6 > this.water) {
+      w.drowned = true;
+      this.events.push({
+        type: "splash",
+        x: w.x,
+        y: this.water,
+        actor: w.id,
+        value: Math.hypot(w.vx, w.vy),
+        waterLevel: this.water,
+      });
       this.damage(w, w.hp);
+    } else if (w.x < -30 || w.x > WORLD_WIDTH + 30) this.damage(w, w.hp);
   }
 
   tick(): void {
@@ -892,6 +961,12 @@ export class Game {
             fragment.x = hit.x;
             fragment.y = hit.y - 5;
             fragment.clearedOwner = true;
+            if (fragment.y >= this.water) {
+              // Born underwater: do not invent another surface-entry splash.
+              fragment.submergedTicks = 1;
+              fragment.vx *= 0.28;
+              fragment.vy = clamp(fragment.vy * 0.24, -70, 90);
+            }
             fragment.fuse = 48 + i * 7;
             this.projectiles.push(fragment);
           }
@@ -974,6 +1049,7 @@ export class Game {
           hp: 100,
           grounded: true,
           jumping: false,
+          drowned: false,
           fallStart: y,
         });
       }

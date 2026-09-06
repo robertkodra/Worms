@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Water effects](docs/WATER.md) — underwater fuses, pressure bursts, splashes and sinking worms.
 - [Ledge jumping](docs/JUMPING.md) — easier uphill jumps, backward high jumps and responsive input.
 - [Three-a-side and left arsenal](docs/LEFT_ARSENAL.md) — current match rules, compact weapon panel and controls.
 - [Scattered battlefields](docs/SCATTERED_FIELDS.md) — mixed crews, cave entrances, spawn safety and validation.

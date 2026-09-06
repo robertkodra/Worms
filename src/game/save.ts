@@ -103,6 +103,10 @@ export function decodeSave(text: string): SavedMatch {
     requireValid(integer(w.hp, 0, 100) && (w.facing === -1 || w.facing === 1));
     requireValid(w.jumping === undefined || typeof w.jumping === "boolean");
     requireValid(
+      w.drowned === undefined ||
+        (typeof w.drowned === "boolean" && (!w.drowned || w.hp === 0)),
+    );
+    requireValid(
       typeof w.grounded === "boolean" &&
         finite(w.walk, 0, 1e9) &&
         finite(w.hurt, 0, 1000),
@@ -209,6 +213,7 @@ export function decodeSave(text: string): SavedMatch {
       facing: w.facing,
       grounded: w.grounded,
       jumping: w.jumping ?? false,
+      drowned: w.drowned ?? false,
       walk: w.walk,
       hurt: w.hurt,
       fallStart: w.fallStart,

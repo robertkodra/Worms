@@ -437,11 +437,11 @@ button:disabled img {
 }
 .dock-area {
   position: absolute;
-  bottom: 0;
+  bottom: var(--water-space, 0px);
   left: 0;
   right: 0;
   padding: 36px 24px 17px;
-  background: linear-gradient(transparent, #132b35ec);
+  background: transparent;
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -1235,7 +1235,7 @@ dialog::backdrop {
 }
 .field-tag {
   left: 104px;
-  bottom: 63px;
+  bottom: calc(63px + var(--water-space, 0px));
   font-size: 9px;
 }
 
@@ -1497,7 +1497,7 @@ dialog.arsenal-dialog {
   }
   .field-tag {
     left: 78px;
-    bottom: 55px;
+    bottom: calc(55px + var(--water-space, 0px));
     font-size: 8px;
     letter-spacing: 1px;
   }
@@ -1588,6 +1588,11 @@ dialog.arsenal-dialog {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   box-shadow: 0 2px 5px #10262c80;
+}
+.fuse-label.submerged {
+  color: #cdf6eb;
+  border-color: #89cfc8;
+  background: #143f4bed;
 }
 .fuse-label.urgent {
   color: #ffd1c4;

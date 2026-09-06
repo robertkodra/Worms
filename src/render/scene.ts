@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { WaterEffects } from "./water";
 import { Game, Weapon, GameEvent, clamp } from "../game/simulation";
 import {
   WEAPON_IDS,
@@ -68,6 +69,7 @@ export class GameScene {
   private tracers: { line: THREE.Line; life: number }[] = [];
   private water: THREE.Mesh;
   private waterEdge: THREE.Line;
+  private waterEffects: WaterEffects;
   private aim: THREE.Line;
   private bridge: THREE.Mesh;
   private particles: Particle[] = [];
@@ -83,6 +85,9 @@ export class GameScene {
   private resizeObserver: ResizeObserver;
   readonly icons: Record<Weapon, string>;
   reducedMotion = false;
+  get waterSequenceActive(): boolean {
+    return this.waterEffects.sinking;
+  }
   private theme: "garden" | "canyon" | "frost" = "garden";
   setTheme(theme: "garden" | "canyon" | "frost"): void {
     if (this.theme === theme) return;
@@ -105,6 +110,7 @@ export class GameScene {
     });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.localClippingEnabled = true;
     this.renderer.setClearColor("#203f50");
     this.renderer.domElement.setAttribute(
       "aria-label",
@@ -184,7 +190,7 @@ export class GameScene {
       new THREE.MeshBasicMaterial({
         color: "#285768",
         transparent: true,
-        opacity: 0.88,
+        opacity: 0.78,
         depthTest: false,
       }),
     );
@@ -200,6 +206,7 @@ export class GameScene {
     );
     this.waterEdge.renderOrder = 10;
     this.scene.add(this.waterEdge);
+    this.waterEffects = new WaterEffects(this.scene, this.wormTextures);
     this.aim = new THREE.Line(
       new THREE.BufferGeometry(),
       new THREE.LineDashedMaterial({
@@ -301,6 +308,7 @@ export class GameScene {
     this.updateCamera();
   }
   reset(): void {
+    this.waterEffects.reset();
     this.lastTrailTick = -1;
     this.landingSquash.clear();
     for (const ring of this.rings) {
@@ -331,6 +339,11 @@ export class GameScene {
   }
 
   event(event: GameEvent): void {
+    this.waterEffects.event(event, this.reducedMotion);
+    if (event.type === "blast" && event.medium === "water") {
+      this.shake = this.reducedMotion ? 0 : 1.5;
+      return;
+    }
     if (event.type === "blast") {
       const radius = event.value ?? 60;
       this.burst(event.x, event.y, 18, radius * 0.65, "#a98c70");
@@ -370,7 +383,8 @@ export class GameScene {
     if (event.type === "shove") this.burst(event.x, event.y, 15, 25, "#c9bad9");
     if (event.type === "bridge")
       this.burst(event.x, event.y, 12, 15, "#c5dd92");
-    if (event.type === "death") this.burst(event.x, event.y, 18, 24, "#cae7cf");
+    if (event.type === "death" && event.medium !== "water")
+      this.burst(event.x, event.y, 18, 24, "#cae7cf");
     if (event.type === "teleport")
       this.burst(event.x, event.y, 35, 35, "#a7dbe6");
     if (event.type === "heal") this.burst(event.x, event.y, 18, 22, "#b7e6a4");
@@ -444,7 +458,9 @@ export class GameScene {
     time: number,
     playing: boolean,
   ): void {
-    const dt = Math.min(0.05, (time - this.lastTime) / 1000 || 0.016);
+    const dt = playing
+      ? Math.min(0.05, (time - this.lastTime) / 1000 || 0.016)
+      : 0;
     this.lastTime = time;
     if (
       this.terrainRevision !== game.terrain.revision ||
@@ -466,7 +482,7 @@ export class GameScene {
     }
     this.updateCamera();
     if (this.reducedMotion) this.shake = 0;
-    if (this.shake > 0) {
+    if (this.shake > 0 && dt > 0) {
       this.camera.position.x += (Math.random() - 0.5) * this.shake;
       this.camera.position.y += (Math.random() - 0.5) * this.shake;
       this.shake *= 0.87;
@@ -618,22 +634,30 @@ export class GameScene {
       if (!fuse.hidden) {
         const position = this.worldToScreen(p.x, p.y - 24);
         const side = position.x > this.width - 60 ? -30 : 30;
-        fuse.style.transform = `translate(${position.x + side}px,${position.y + 8}px) translate(-50%,-100%)`;
-        fuse.textContent = `${(p.fuse / 60).toFixed(1)}s`;
+        fuse.textContent = `${(p.fuse / 60).toFixed(1)}s${p.submergedTicks ? " · underwater" : ""}`;
+        const margin = fuse.offsetWidth / 2 + 8;
+        fuse.style.transform = `translate(${clamp(position.x + side, margin, this.width - margin)}px,${position.y + 8}px) translate(-50%,-100%)`;
+        fuse.classList.toggle("submerged", p.submergedTicks > 0);
         fuse.classList.toggle("urgent", p.fuse <= 60);
       }
       bullet.visible = !!p;
       if (!p) return;
       bullet.position.set(p.x, WORLD_HEIGHT - p.y, 6);
       bullet.material.map = this.ammunition[p.kind];
+      bullet.renderOrder = p.submergedTicks ? 9.6 : 8;
+      bullet.material.color.set(p.submergedTicks ? "#a3dbd8" : "#ffffff");
+      bullet.material.opacity = p.submergedTicks ? 0.8 : 1;
       bullet.scale.set(
         p.kind === "rocket" ? 24 : p.kind === "fragment" ? 12 : 20,
         p.kind === "rocket" ? 11 : 15,
         1,
       );
       bullet.material.rotation = -Math.atan2(p.vy, p.vx);
-      if (emitTrail && !p.resting && this.particles.length < 240)
-        this.burst(p.x, p.y, 1, 2, "#e4e1cf");
+      if (emitTrail && !p.resting && this.particles.length < 240) {
+        if (p.submergedTicks)
+          this.waterEffects.bubble(p.x, p.y, this.reducedMotion);
+        else this.burst(p.x, p.y, 1, 2, "#e4e1cf");
+      }
     });
     this.rings = this.rings.filter((ring) => {
       ring.life -= dt;
@@ -705,11 +729,19 @@ export class GameScene {
       f.el.style.opacity = String(Math.min(1, f.life * 2));
       return true;
     });
+    this.waterEffects.update(game, dt, this.reducedMotion);
+    // Keep the aim readout above the visible water so sinking bodies and fuses
+    // remain readable. Clamp the offset when panning or sudden death floods.
+    this.container.style.setProperty(
+      "--water-space",
+      `${clamp(this.height - this.worldToScreen(800, game.water).y - 10, 0, 100)}px`,
+    );
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
     this.resizeObserver.disconnect();
     this.reset();
+    this.waterEffects.dispose();
     this.scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
         obj.geometry.dispose();

@@ -240,7 +240,15 @@ export class AudioBus {
   }
   event(e: GameEvent): void {
     if (this.muted) return;
-    if (e.type === "step") {
+    if (e.type === "splash") {
+      this.noise(0.24, 1500);
+      this.tone(260, 0.23, "sine", 65, 0.2);
+      this.tone(470, 0.14, "sine", 170, 0.09);
+    } else if (e.type === "blast" && e.medium === "water") {
+      this.noise(0.85, 230);
+      this.tone(68, 0.75, "sine", 24, 0.7);
+      this.tone(180, 0.35, "sine", 75, 0.12);
+    } else if (e.type === "step") {
       const now = this.ctx?.currentTime ?? 0;
       if (now - this.lastStep < 0.16) return;
       this.lastStep = now;

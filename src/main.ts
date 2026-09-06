@@ -62,7 +62,7 @@ root.innerHTML = `<main class="shell">
     <div class="dock-area"><div class="aim-readout" id="aim-readout"><span>ANGLE <strong id="angle-readout">45°</strong></span><span>POWER <strong id="power-value">70%</strong><span class="power-track"><i id="power-bar"></i></span></span><span class="readout-note" id="weapon-hint">Hold F or click to charge</span></div></div><nav class="weapon-dock" id="weapon-dock" aria-label="Quick weapons and arsenal"></nav>
     <div class="toast" id="toast" role="status"></div>
   </section>
-  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 05</a></footer>
+  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 06</a></footer>
 </main>
 <dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Three worms on your side. Three with other ideas.<br>Scattered across ridges and burrows. Judge the wind, pick your shot, and leave your mark.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><details class="match-setup"><summary>Make it your battlefield</summary><label class="settings-row" for="theme-input">Scenery<select id="theme-input"><option value="garden">Moonlit garden</option><option value="canyon">Copper canyon</option><option value="frost">Frost hollow</option></select></label><div class="name-grid" id="crew-names"></div></details><p id="save-status" class="voice-note" role="status"></p><div class="start-actions"><button class="primary-button" id="continue-button" hidden>Continue saved skirmish</button><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="practice-button">Visit the practice range</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
 <dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><label class="settings-row">All sound<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Placeholder worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">Temporary voice pack. Replacement recordings are in progress; captions always stay on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><details class="match-setup"><summary>Keyboard controls</summary><div id="bindings"></div><p class="voice-note" id="binding-note">Select a control, then press a letter or Space. Arrows aim placed items; 1–4 select quick slots.</p><button class="shuffle-button" id="reset-bindings">Reset controls</button></details><p class="voice-note" id="checkpoint-note">Autosaved at the start of each of your turns.</p><div class="dialog-buttons"><button class="secondary-button" id="menu-button">Return to menu</button><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
@@ -1302,7 +1302,8 @@ function frame(time: number): void {
   }
   if (time > toastUntil) el("toast").classList.remove("show");
   if (time > banterUntil) el("banter").classList.remove("show");
-  if (game.phase === "over" && !resultShown) showResult();
+  if (game.phase === "over" && !resultShown && !scene.waterSequenceActive)
+    showResult();
   requestAnimationFrame(frame);
 }
 el<HTMLDialogElement>("start-dialog").showModal();
@@ -1376,6 +1377,7 @@ const readMatch = () => ({
   projectiles: game.projectiles.map((p) => ({
     kind: p.kind,
     fuseSeconds: p.fuse > 0 ? Math.round(p.fuse / 6) / 10 : null,
+    underwater: p.submergedTicks > 0,
     x: Math.round(p.x),
     y: Math.round(p.y),
   })),
@@ -1389,6 +1391,7 @@ const readMatch = () => ({
     x: Math.round(w.x),
     y: Math.round(w.y),
     hp: w.hp,
+    drowned: w.drowned,
   })),
   inventory: { ...game.inventory[0] },
 });

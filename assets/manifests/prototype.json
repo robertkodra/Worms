@@ -3,6 +3,15 @@
   "status": "local-playable-prototype",
   "assets": [
     {
+      "id": "water-effects",
+      "kind": "procedural-2d-environment",
+      "source": "src/render/water.ts",
+      "origin": "original procedural artwork",
+      "creator": "Project",
+      "runtime": "Canvas bubble, underwater glow and seabed textures; Three.js ripples and sinking character meshes",
+      "review": "Reviewed at gameplay scale with normal and reduced motion; no external media files"
+    },
+    {
       "id": "worm-cast",
       "kind": "procedural-2d-texture",
       "source": "src/render/art.ts",

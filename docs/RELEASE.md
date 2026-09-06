@@ -1,4 +1,4 @@
-# Skirmish 05 — release candidate work
+# Skirmish 06 — release candidate work
 
 This is a playable desktop release candidate, not a completed public launch. It retains the original 2D prototype art direction. The replacement recordings and music are being supplied separately.
 
@@ -12,6 +12,7 @@ This is a playable desktop release candidate, not a completed public launch. It 
 - Local worm names, safe text rendering, readable staggered battlefield labels, keyboard rebinding, pointer/keyboard placement, browser-shortcut handling, pause and graphics-loss guards.
 - Turn-start autosave and Continue. Exact terrain, inventory, names, turn rotation and random-generator state are restored. A damaged or unavailable save leaves New Game usable. Returning to the menu deliberately rolls back movement/actions to the start of the latest saved human turn.
 - A separate practice range with unlimited items, no aiming time limit and resetting targets and terrain after each attempt. Physics and weapon behavior match skirmish rules. Practice does not overwrite the skirmish checkpoint.
+- Water entry splashes, continuing underwater fuses, muffled pressure bursts and persistent cosmetic sinking remains. The aim readout leaves the water visible, and the effects respect pause and reduced motion.
 - Placeholder voices are opt-in on new settings; captions remain active. The existing recording pack stays ready for the supplied replacements.
 - Locked dependencies, a production build, repository/output privacy pattern checking, CI and a static-host configuration with same-origin assets/worker and cache/security headers. Local production preview uses the same baseline security headers.
 
@@ -19,7 +20,7 @@ This is a playable desktop release candidate, not a completed public launch. It 
 
 `npm run check` runs the test suite, TypeScript/production build and privacy scan. The scan reports relative filenames and rule names, never matched credential text. It is a useful publication check, not a comprehensive secret scanner.
 
-The current suite has 94 tests. The [0.5.1 jumping update](JUMPING.md) records ledge, ceiling and input regressions, 384 generated-terrain jumps, save continuity and keyboard browser validation. The [0.5.0 team and arsenal update](LEFT_ARSENAL.md) records 3v3 defaults, legacy saves, the left-side weapon panel and browser validation. The [0.4.0 scattered battlefield update](SCATTERED_FIELDS.md) records mixed-team placement, cave exits, the rare surface-only fallback, saved-match compatibility, and a 10,000-field generation probe. The [0.3.1 physics update](PHYSICS.md) records the crater-contact, grenade-response and impact-presentation fixes and their additional validation. Coverage includes 3v3 spawns and legacy 4v4 saves and survivor rotation; sudden-death progression through a complete ending; practice isolation; saved-state and future-RNG equivalence; malformed/oversized saves; in-flight rocket, cluster, TNT and airstrike restoration; worker cancellation/fallback; and invalid key bindings.
+The current suite has 109 tests. The [0.6.0 water update](WATER.md) records continuing underwater fuses, pressure effects, sinking remains and 15 water regressions. The [0.5.1 jumping update](JUMPING.md) records ledge, ceiling and input regressions, 384 generated-terrain jumps, save continuity and keyboard browser validation. The [0.5.0 team and arsenal update](LEFT_ARSENAL.md) records 3v3 defaults, legacy saves, the left-side weapon panel and browser validation. The [0.4.0 scattered battlefield update](SCATTERED_FIELDS.md) records mixed-team placement, cave exits, the rare surface-only fallback, saved-match compatibility, and a 10,000-field generation probe. The [0.3.1 physics update](PHYSICS.md) records the crater-contact, grenade-response and impact-presentation fixes and their additional validation. Coverage includes 3v3 spawns and legacy 4v4 saves and survivor rotation; sudden-death progression through a complete ending; practice isolation; saved-state and future-RNG equivalence; malformed/oversized saves; in-flight rocket, cluster, TNT and airstrike restoration; worker cancellation/fallback; and invalid key bindings.
 
 An isolated paired benchmark of the earlier 0.3.0 rules used 20 seeds in both team assignments (40 matches). The full planner with movement and retreat won 24/40 against stationary rocket/grenade planning, with identical physics and aim error. All matches finished; there were no illegal actions or nonfinite states. Mean length was 13.5 team turns, median 13, range 8–30. This establishes development stability and comparative policy strength, not human difficulty or real-world match duration. No benchmark match reached sudden death; the focused regression fixture covers it.
 
@@ -27,7 +28,7 @@ Historical 0.3.0 spawn probing across 200 seeds found no embedded, unsupported o
 
 Earlier 0.3.x browser smoke checks passed in the Codex in-app browser on macOS: customized 4v4 canyon setup; restored names, health and terrain after reload; practice firing and target reset; keyboard fire rebinding/reset; practice new-field isolation; and readable labels in narrow and wide views. A fresh production-build match under the configured content-security policy reached the results screen after seven rounds, seven computer attacks and eleven craters. Reloading removed the completed match from Continue. No browser errors were recorded. This smoke player mostly skipped turns to exercise progression; it is not a human balance test.
 
-The local production response included the configured content-security, content-type, referrer and permissions headers. This verifies the local preview only; hosted caching/headers remain a separate gate. The 0.5.0 production JavaScript entry is approximately 623 KB uncompressed / 165 KB gzip, with a separate 25 KB AI worker. Vite's uncompressed chunk-size advisory remains; no production source maps are emitted.
+The local production response included the configured content-security, content-type, referrer and permissions headers. This verifies the local preview only; hosted caching/headers remain a separate gate. The 0.6.0 production JavaScript entry is approximately 633 KB uncompressed / 169 KB gzip, with a separate 26 KB AI worker. Vite's uncompressed chunk-size advisory remains; no production source maps are emitted.
 
 ## Launch gates
 
