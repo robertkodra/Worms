@@ -69,7 +69,7 @@ export class Terrain {
     return this.cells[Math.floor(y) * this.width + Math.floor(x)] ?? 0;
   }
 
-  generate(seed: number, teamSize: 2 | 4 = 4): void {
+  generate(seed: number, teamSize: 2 | 3 | 4 = 3): void {
     this.cells.fill(0);
     this.tops.fill(this.height);
     const random = seededRandom(seed);
@@ -186,7 +186,7 @@ export class Terrain {
 
   private scatterSpawns(
     random: RandomSource,
-    teamSize: 2 | 4,
+    teamSize: 2 | 3 | 4,
     caves: {
       lo: number;
       hi: number;
@@ -290,7 +290,7 @@ export class Terrain {
         const changes = order
           .slice(1)
           .filter((p, i) => p.team !== order[i].team).length;
-        if (changes < (teamSize === 4 ? 3 : 2)) continue;
+        if (changes < (teamSize >= 3 ? 3 : 2)) continue;
         return points;
       }
     }

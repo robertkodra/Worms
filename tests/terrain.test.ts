@@ -4,10 +4,10 @@ import { decodeSave, encodeSave } from "../src/game/save";
 import { executeMove, planMovement } from "../src/game/ai";
 
 describe("scattered surface and cave starts", () => {
-  it("gives both crews separated, stable, mixed starts across 256 seeds and both team sizes", () => {
+  it("gives both crews separated, stable, mixed starts across 256 seeds and all supported team sizes", () => {
     const signatures = new Set<string>();
     let caveFields = 0;
-    for (const teamSize of [2, 4] as const) {
+    for (const teamSize of [2, 3, 4] as const) {
       for (let index = 0; index < 256; index++) {
         const seed = 1 + ((index * 3911) % 999999);
         let g: Game;
@@ -38,7 +38,7 @@ describe("scattered surface and cave starts", () => {
         }
         expect(
           order.slice(1).filter((w, i) => w.team !== order[i].team).length,
-        ).toBeGreaterThanOrEqual(teamSize === 4 ? 3 : 2);
+        ).toBeGreaterThanOrEqual(teamSize >= 3 ? 3 : 2);
         signatures.add(order.map((w) => w.team).join(""));
         for (const w of g.worms) {
           expect(w.team).toBe(Math.floor(w.id / teamSize));
@@ -63,7 +63,7 @@ describe("scattered surface and cave starts", () => {
       }
     }
     expect(signatures.size).toBeGreaterThan(12);
-    expect(caveFields).toBeGreaterThan(480);
+    expect(caveFields).toBeGreaterThan(720);
   }, 30000);
 
   it("every sampled underground start can walk its generated exit without jumping, damage or digging", () => {

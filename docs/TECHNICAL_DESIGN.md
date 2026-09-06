@@ -10,7 +10,7 @@ The match uses fully two-dimensional gameplay and illustrated visuals, preservin
 
 Use the Three.js WebGL renderer and require WebGL 2. Provide a clear compatibility message if its initialization fails. WebGPU is outside the initial scope: the current WebGL renderer already targets WebGL 2. [Three.js WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer.html)
 
-The entire match, including AI, runs in the browser. No game server, remote model inference, account system, database service, or cloud save is needed for the proposed single-player release. Validate the vertical slice with two characters per team, then expand to four per team for the initial full release.
+The entire match, including AI, runs in the browser. No game server, remote model inference, account system, database service, or cloud save is needed for the proposed single-player release. Validate the vertical slice with two characters per team, then use three per team for the initial full release. Earlier four-member saves remain supported.
 
 ## Boundaries and data flow
 
@@ -125,7 +125,7 @@ Use plain data validation on load. Reject corrupt or incompatible checkpoints wi
 
 ## Proposed budgets and verification
 
-Select and document exact public reference devices before implementing performance acceptance. Proposed baseline: a recent mid-range laptop with integrated graphics, 1920 × 1080 display, browser zoom 100%, and internal pixel ratio capped at 1.5. Use a worst-case fixture with four characters per team, highly cratered terrain, and the heaviest permitted explosion. Collect frame percentiles over at least ten minutes, excluding initial loading but including AI turns and terrain destruction.
+Select and document exact public reference devices before implementing performance acceptance. Proposed baseline: a recent mid-range laptop with integrated graphics, 1920 × 1080 display, browser zoom 100%, and internal pixel ratio capped at 1.5. Use a worst-case fixture with four characters per team (legacy save support), highly cratered terrain, and the heaviest permitted explosion. Collect frame percentiles over at least ten minutes, excluding initial loading but including AI turns and terrain destruction.
 
 | Measure | Proposed target / action |
 | --- | --- |

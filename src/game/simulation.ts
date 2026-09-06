@@ -250,7 +250,7 @@ export const DEFAULT_NAMES = [
   ["Moss", "Grub", "Thistle", "Bramble"],
 ];
 export interface GameOptions {
-  teamSize?: 2 | 4;
+  teamSize?: 2 | 3 | 4;
   names?: string[][];
   mode?: "skirmish" | "practice";
 }
@@ -290,20 +290,20 @@ export class Game {
   stats = { shots: 0, damage: 0, craters: 0 };
   inventory: Record<Weapon, number>[] = [createInventory(), createInventory()];
   readonly random: RandomSource;
-  readonly teamSize: 2 | 4;
+  readonly teamSize: 2 | 3 | 4;
   readonly mode: "skirmish" | "practice";
 
   constructor(
     readonly seed = 41823,
     options: GameOptions = {},
   ) {
-    this.teamSize = options.teamSize ?? 4;
+    this.teamSize = options.teamSize ?? 3;
     this.mode = options.mode ?? "skirmish";
-    if (this.teamSize === 4) {
+    if (this.teamSize >= 3) {
       for (const inventory of this.inventory) {
-        inventory.medkit = 2;
-        inventory.shotgun = 6;
-        inventory.sniper = 4;
+        inventory.medkit = this.teamSize === 4 ? 2 : 1;
+        inventory.shotgun = this.teamSize + 2;
+        inventory.sniper = this.teamSize;
       }
     }
     if (this.mode === "practice")
@@ -409,7 +409,7 @@ export class Game {
   }
 
   get suddenDeathRound(): number {
-    return this.teamSize === 4 ? 16 : 10;
+    return this.teamSize === 2 ? 10 : this.teamSize * 4;
   }
 
   get active(): Worm {

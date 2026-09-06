@@ -237,29 +237,34 @@ describe("match progression", () => {
     ).toBe(true);
     expect(a.turn).toBe(b.turn);
   });
-  it("finishes complete 2v2 AI matches with finite state", () => {
-    for (const seed of [41823, 7, 934]) {
-      const g = new Game(seed, { teamSize: 2 });
-      let simulated = 0;
-      while (g.phase !== "over" && simulated < 90000) {
-        if (g.phase === "aim") {
-          let plan;
-          for (const candidate of planShots(g)) plan = candidate;
-          if (plan) g.attack(plan.weapon, plan.angle, plan.power, plan.target);
-          else g.endTurn();
+  it.each([2, 3] as const)(
+    "finishes complete AI matches with %s worms per team and finite state",
+    (teamSize) => {
+      for (const seed of [41823, 7, 934]) {
+        const g = new Game(seed, { teamSize });
+        let simulated = 0;
+        while (g.phase !== "over" && simulated < 90000) {
+          if (g.phase === "aim") {
+            let plan;
+            for (const candidate of planShots(g)) plan = candidate;
+            if (plan)
+              g.attack(plan.weapon, plan.angle, plan.power, plan.target);
+            else g.endTurn();
+          }
+          g.tick();
+          simulated++;
+          for (const w of g.worms)
+            expect([w.x, w.y, w.vx, w.vy, w.hp].every(Number.isFinite)).toBe(
+              true,
+            );
         }
-        g.tick();
-        simulated++;
-        for (const w of g.worms)
-          expect([w.x, w.y, w.vx, w.vy, w.hp].every(Number.isFinite)).toBe(
-            true,
-          );
+        expect(g.phase, `seed ${seed} stalled after ${g.turn} turns`).toBe(
+          "over",
+        );
+        expect(g.winner).not.toBeNull();
+        expect(g.stats.shots).toBeGreaterThan(4);
       }
-      expect(g.phase, `seed ${seed} stalled after ${g.turn} turns`).toBe(
-        "over",
-      );
-      expect(g.winner).not.toBeNull();
-      expect(g.stats.shots).toBeGreaterThan(4);
-    }
-  }, 30000);
+    },
+    30000,
+  );
 });

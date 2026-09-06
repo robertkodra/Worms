@@ -2,7 +2,7 @@
 
 An independent browser artillery game inspired specifically by **[Worms Armageddon](https://store.steampowered.com/app/217200/Worms_Armageddon/)**: expressive little characters, destructible landscapes, skillful shots, and comic disaster. The game uses Three.js to render a fully 2D illustrated world.
 
-**Status: a local 4-versus-4 release candidate is playable.** It includes 12 weapons/tools, mixed-team surface and cave starts, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
+**Status: a local 3-versus-3 release candidate is playable.** It includes 12 weapons/tools in a compact left-side arsenal, mixed-team surface and cave starts, four seeded layouts in three scenery themes, a tactical computer with background shot planning, autosave/continue, editable names, a separate practice range and keyboard rebinding. Final audio, human balance testing, the full browser matrix and hosted launch checks remain open. See the [release record](docs/RELEASE.md).
 
 ## Play locally
 
@@ -12,6 +12,7 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Start here
 
+- [Three-a-side and left arsenal](docs/LEFT_ARSENAL.md) — current match rules, compact weapon panel and controls.
 - [Scattered battlefields](docs/SCATTERED_FIELDS.md) — mixed crews, cave entrances, spawn safety and validation.
 - [Physics update](docs/PHYSICS.md) — crater-edge and grenade fixes, impact effects and next improvements.
 - [Current release record](docs/RELEASE.md) — implemented features, evidence and remaining launch gates.
@@ -27,9 +28,9 @@ With Node 22.12 or newer, run `npm ci` and `npm run dev` from this repository. O
 
 ## Proposed first release
 
-One player commands four characters against a challenging computer-controlled team of four. Short turns, wind, arcing projectiles, craters, caves, knockback, and well-timed banter create matches designed to last around 15–25 minutes. One fixed opponent difficulty; no account or game server required.
+One player commands three characters against a challenging computer-controlled team of three. Short turns, wind, arcing projectiles, craters, caves, knockback, and well-timed banter create matches designed to last around 15–25 minutes. One fixed opponent difficulty; no account or game server required.
 
-The current candidate implements the four-member teams and core browser product. The original 15–25 minute duration is a design target, not a measured result; playtest timing will determine whether it needs revision.
+The current candidate implements the three-member teams and core browser product. The original 15–25 minute duration is a design target, not a measured result; playtest timing will determine whether it needs revision.
 
 ## Publication and reuse
 

@@ -52,22 +52,22 @@ root.innerHTML = `<main class="shell">
   <section class="battlefield" id="battlefield" aria-label="Game battlefield">
     <div class="labels" id="labels" aria-hidden="true"></div>
     <div class="field-top">
-      <div class="team-card"><div class="team-heading"><span><span class="team-symbol">▲ </span> THE ROOT CREW</span><strong id="team-hp-0">400</strong></div><div class="team-bars" id="bars-0"></div><div class="team-subtitle" id="squad-0">Four worms · Your crew</div></div>
+      <div class="team-card"><div class="team-heading"><span><span class="team-symbol">▲ </span> THE ROOT CREW</span><strong id="team-hp-0">300</strong></div><div class="team-bars" id="bars-0"></div><div class="team-subtitle" id="squad-0">Three worms · Your crew</div></div>
       <div class="match-center"><div class="wind"><span class="wind-arrow" id="wind-arrow">→</span><strong id="wind-value">12</strong><span>WIND</span></div><div class="round-label" id="round-label">ROUND 01</div><div class="turn-banner hidden" id="turn-banner"><span class="time" id="timer">45</span><div class="turn-caption"><span id="turn-caption">Your move</span><small id="turn-detail">Pip is up</small></div></div></div>
-      <div class="team-card enemy"><div class="team-heading"><strong id="team-hp-1">400</strong><span>THE NIGHT SHIFT <span class="team-symbol"> ◆</span></span></div><div class="team-bars" id="bars-1"></div><div class="team-subtitle" id="squad-1">Four worms · Computer</div></div>
+      <div class="team-card enemy"><div class="team-heading"><strong id="team-hp-1">300</strong><span>THE NIGHT SHIFT <span class="team-symbol"> ◆</span></span></div><div class="team-bars" id="bars-1"></div><div class="team-subtitle" id="squad-1">Three worms · Computer</div></div>
     </div>
     <div class="banter" id="banter" role="status" aria-live="polite"></div>
     <div class="field-tag" id="map-layout">Moonlit garden / skirmish</div>
-    <div class="dock-area"><div class="aim-readout" id="aim-readout"><span>ANGLE <strong id="angle-readout">45°</strong></span><span>POWER <strong id="power-value">70%</strong><span class="power-track"><i id="power-bar"></i></span></span><span class="readout-note" id="weapon-hint">Hold F or click to charge</span></div><div class="weapon-dock" id="weapon-dock"></div></div>
+    <div class="dock-area"><div class="aim-readout" id="aim-readout"><span>ANGLE <strong id="angle-readout">45°</strong></span><span>POWER <strong id="power-value">70%</strong><span class="power-track"><i id="power-bar"></i></span></span><span class="readout-note" id="weapon-hint">Hold F or click to charge</span></div></div><nav class="weapon-dock" id="weapon-dock" aria-label="Quick weapons and arsenal"></nav>
     <div class="toast" id="toast" role="status"></div>
   </section>
-  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 04</a></footer>
+  <footer class="controls-line"><span id="control-summary"><kbd>A / D</kbd> Move <span class="spacer">·</span><kbd>Space</kbd> Jump <span class="spacer">·</span> Pointer Aim <span class="spacer">·</span> Hold <kbd>F</kbd> Fire <span class="spacer">·</span><kbd>1–4</kbd> Items <span class="spacer">·</span><kbd>Q</kbd> Arsenal <span class="camera-help"><span class="spacer">·</span> Scroll Zoom <span class="spacer">·</span><kbd>R</kbd> Recenter</span></span><a class="studio" href="/credits.html" target="_blank" rel="noopener">CREDITS / SKIRMISH 05</a></footer>
 </main>
-<dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Four worms on your side. Four with other ideas.<br>Scattered across ridges and burrows. Judge the wind, pick your shot, and leave your mark.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><details class="match-setup"><summary>Make it your battlefield</summary><label class="settings-row" for="theme-input">Scenery<select id="theme-input"><option value="garden">Moonlit garden</option><option value="canyon">Copper canyon</option><option value="frost">Frost hollow</option></select></label><div class="name-grid" id="crew-names"></div></details><p id="save-status" class="voice-note" role="status"></p><div class="start-actions"><button class="primary-button" id="continue-button" hidden>Continue saved skirmish</button><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="practice-button">Visit the practice range</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
+<dialog id="start-dialog" aria-labelledby="start-title"><div class="dialog-inner"><div class="eyebrow">Welcome to the garden</div><h1 class="title-heading" id="start-title">Little worms.<br><em>Big grudges.</em></h1><p class="dialog-description">Three worms on your side. Three with other ideas.<br>Scattered across ridges and burrows. Judge the wind, pick your shot, and leave your mark.</p><div class="start-meta"><span><i></i> You vs. computer</span><span><i></i> 12 ways to cause trouble</span></div><details class="match-setup"><summary>Make it your battlefield</summary><label class="settings-row" for="theme-input">Scenery<select id="theme-input"><option value="garden">Moonlit garden</option><option value="canyon">Copper canyon</option><option value="frost">Frost hollow</option></select></label><div class="name-grid" id="crew-names"></div></details><p id="save-status" class="voice-note" role="status"></p><div class="start-actions"><button class="primary-button" id="continue-button" hidden>Continue saved skirmish</button><button class="primary-button" id="start-button">Start skirmish ${svg("arrow")}</button><button class="secondary-button" id="practice-button">Visit the practice range</button><button class="secondary-button" id="start-help">A quick field guide</button></div></div><div class="dialog-foot"><label for="seed-input">Battlefield seed <input id="seed-input" inputmode="numeric" type="number" min="1" max="999999" value="41823" /></label><button class="shuffle-button" id="shuffle-seed">Shuffle field ↻</button></div></dialog>
 <dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-inner"><div class="eyebrow">Taking a breather</div><h2 class="dialog-heading" id="pause-title">The garden can wait.</h2><p class="dialog-description">Your turn is right where you left it.</p><label class="settings-row">All sound<input type="checkbox" id="sound-setting" checked /></label><label class="settings-row">Placeholder worm voices<input type="checkbox" id="voice-setting" checked /></label><label class="settings-row">Voice volume<input type="range" id="voice-volume" min="0" max="100" value="70" /></label><div class="voice-preview-row"><p class="voice-note" id="voice-note">Temporary voice pack. Replacement recordings are in progress; captions always stay on.</p><button class="shuffle-button" id="test-voice">Test voice</button></div><label class="settings-row">Reduce motion and screen shake<input type="checkbox" id="motion-setting" /></label><details class="match-setup"><summary>Keyboard controls</summary><div id="bindings"></div><p class="voice-note" id="binding-note">Select a control, then press a letter or Space. Arrows aim placed items; 1–4 select quick slots.</p><button class="shuffle-button" id="reset-bindings">Reset controls</button></details><p class="voice-note" id="checkpoint-note">Autosaved at the start of each of your turns.</p><div class="dialog-buttons"><button class="secondary-button" id="menu-button">Return to menu</button><button class="primary-button" id="resume-button">Back to the garden ${svg("arrow")}</button><button class="secondary-button" id="restart-button">Restart this battlefield</button><button class="secondary-button" id="new-button">New battlefield</button></div></div></dialog>
-<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div class="dialog-inner"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list" id="help-controls"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Open the full arsenal · turn pauses</div><div><kbd>Right-drag · Wheel · R</kbd>Pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. Both crews start scattered across the field. Cave ramps lead back outside; blasts can change the way out. Shuffle for a new layout and new positions, or replay the same seed. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-dismiss" id="close-help" aria-label="Close field guide">×</button><div class="dialog-inner"><div class="eyebrow">The field guide</div><h2 class="dialog-heading" id="help-title">Aim small. Think big.</h2><p class="dialog-description">Take out the other crew. You get 45 seconds to move and attack, then 5 seconds to get out of trouble.</p><div class="help-list" id="help-controls"><div><kbd>A / D or ← / →</kbd>Inch left / right</div><div><kbd>Space · Shift + Space</kbd>Jump · backward high jump</div><div><kbd>Pointer or ↑ / ↓</kbd>Set your aim</div><div><kbd>Hold F or left mouse</kbd>Charge; release to fire</div><div><kbd>1 · 2 · 3 · 4</kbd>Your four quick slots</div><div><kbd>Q</kbd>Left arsenal · turn pauses</div><div><kbd>Right-click / drag · Wheel · R</kbd>Arsenal / pan · zoom · recenter</div></div><p class="help-note">Browse the Arsenal for handling, damage and ammo. Grenades split or bounce; rifles fire straight. Drop TNT and run. Select an item to put it in quick slot 4. Both crews start scattered across the field. Cave ramps lead back outside; blasts can change the way out. Shuffle for a new layout and new positions, or replay the same seed. Water is fatal. Watch the wind—and mind your own crew.</p><div class="dialog-buttons"><button class="primary-button" id="help-done">Got it ${svg("arrow")}</button></div></div></dialog>
 <dialog id="result-dialog" aria-labelledby="result-title"><div class="dialog-inner"><div class="eyebrow" id="result-eyebrow">The dust has settled</div><h2 class="dialog-heading" id="result-title">A small, decisive victory.</h2><p class="dialog-description" id="result-copy"></p><div class="stats-grid"><div><b id="stat-rounds">0</b><span>ROUNDS</span></div><div><b id="stat-shots">0</b><span>SHOTS</span></div><div><b id="stat-craters">0</b><span>NEW CRATERS</span></div></div><div class="dialog-buttons"><button class="primary-button" id="rematch-button">Same field. Settle the score. ${svg("arrow")}</button><button class="secondary-button" id="result-new">New battlefield</button></div></div></dialog>
-<dialog id="arsenal-dialog" class="arsenal-dialog" aria-labelledby="arsenal-title"><div class="arsenal-header"><div><div class="eyebrow">The equipment shed</div><h2 id="arsenal-title">Small arms. Big ideas.</h2></div><button class="icon-button" id="close-arsenal" aria-label="Close arsenal">×</button></div><div class="arsenal-toolbar"><input type="search" id="arsenal-search" placeholder="Find a weapon or tool…" aria-label="Search arsenal" /><span class="arsenal-count" id="arsenal-count">12 ITEMS</span></div><div class="arsenal-categories" id="arsenal-categories" aria-label="Weapon categories"></div><div class="arsenal-grid" id="arsenal-grid" aria-label="Available equipment"></div><div class="arsenal-detail" id="arsenal-detail" aria-live="polite"></div><div class="arsenal-foot"><span>Turn paused while you browse.</span><span>Select to equip · new items use slot 4</span></div></dialog>`;
+<dialog id="arsenal-dialog" class="arsenal-dialog" aria-labelledby="arsenal-title"><div class="arsenal-header"><div><div class="eyebrow">Choose your trouble</div><h2 id="arsenal-title">Arsenal <span id="arsenal-count">12 items</span></h2></div><button class="icon-button" id="close-arsenal" aria-label="Close arsenal">×</button></div><div class="arsenal-toolbar"><input type="search" id="arsenal-search" placeholder="Search kit…" aria-label="Search arsenal" /><select id="arsenal-category" aria-label="Weapon category"><option value="All">All weapons</option>${CATEGORIES.map((category) => `<option>${category}</option>`).join("")}</select></div><div class="arsenal-grid" id="arsenal-grid" aria-label="Available equipment"></div><div class="arsenal-detail" id="arsenal-detail" aria-live="polite" aria-atomic="true"></div><div class="arsenal-foot"><span><i></i> Turn paused</span><span>Arrows to browse · Enter to equip</span></div></dialog>`;
 
 const el = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -96,7 +96,7 @@ function buildDock(): void {
           `<button class="weapon" id="quick-${i}" data-weapon="${kind}" aria-label="${WEAPONS[kind].name}" aria-pressed="false" title="${WEAPONS[kind].hint}"><span class="key">${i + 1}</span><span class="stock" id="quick-stock-${i}"></span><img src="${scene.icons[kind]}" alt="" /><span class="weapon-name">${WEAPONS[kind].short}</span></button>`,
       )
       .join("") +
-    `<button class="arsenal-button" id="arsenal-button" aria-label="Open arsenal" title="Full arsenal (${keyLabel(bindings.arsenal)})"><span class="arsenal-glyph">▦</span><strong>ARSENAL</strong><small>${keyLabel(bindings.arsenal)} · ${kinds.length} ITEMS</small></button><button class="skip-button" id="skip-button" aria-label="End turn" title="End turn">${svg("skip")}<small>SKIP</small></button>`;
+    `<button class="arsenal-button" id="arsenal-button" aria-label="Open arsenal" aria-controls="arsenal-dialog" aria-expanded="false" title="Full arsenal (${keyLabel(bindings.arsenal)})"><span class="arsenal-glyph">▦</span><strong>ARSENAL</strong><small>${keyLabel(bindings.arsenal)} · ${kinds.length} ITEMS</small></button><button class="skip-button" id="skip-button" aria-label="End turn" title="End turn">${svg("skip")}<small>SKIP</small></button>`;
   quickSlots.forEach(
     (kind, i) => (el(`quick-${i}`).onclick = () => selectWeapon(kind)),
   );
@@ -200,6 +200,7 @@ syncSettings();
 function closeDialogs(): void {
   dialogs.forEach((d) => d.close());
   arsenalOpen = false;
+  el("arsenal-button")?.setAttribute("aria-expanded", "false");
 }
 function cancelInput(): void {
   bindingCapture = null;
@@ -279,8 +280,15 @@ function say(event: GameEvent): void {
 }
 function describeItem(kind: Weapon): void {
   const def = WEAPONS[kind];
+  const stock = game.inventory[0][kind];
+  const availability =
+    stock === 0
+      ? "Out of ammo"
+      : kind === "medkit" && game.active.hp >= 100
+        ? "Already at full health"
+        : "Click or press Enter to equip";
   el("arsenal-detail").innerHTML =
-    `<strong>${def.name}</strong><span>${def.damage} <i>·</i> ${def.range}</span><p>${def.hint}</p>`;
+    `<div class="detail-title"><img src="${scene.icons[kind]}" alt="" /><div><strong>${def.name}</strong><small>${availability}</small></div></div><span>${def.damage} <i>·</i> ${def.range}</span><p>${def.hint}</p>`;
 }
 function renderArsenal(): void {
   const query = el<HTMLInputElement>("arsenal-search")
@@ -293,44 +301,61 @@ function renderArsenal(): void {
         .toLowerCase()
         .includes(query),
   );
-  el("arsenal-count").textContent = `${visible.length} / ${kinds.length} ITEMS`;
-  el("arsenal-categories").innerHTML = ["All", ...CATEGORIES]
-    .map(
-      (category) =>
-        `<button data-category="${category}" aria-pressed="${category === arsenalCategory}">${category}</button>`,
-    )
-    .join("");
+  el("arsenal-count").textContent = `${visible.length} / ${kinds.length}`;
   el("arsenal-grid").innerHTML = visible.length
-    ? visible
-        .map((k) => {
-          const def = WEAPONS[k],
-            stock = game.inventory[0][k],
-            unavailable =
+    ? CATEGORIES.map((category) => {
+        const items = visible.filter((k) => WEAPONS[k].category === category);
+        if (!items.length) return "";
+        return `<section class="arsenal-group" aria-label="${category}"><h3>${category}</h3><div class="arsenal-row">${items
+          .map((k) => {
+            const def = WEAPONS[k],
+              stock = game.inventory[0][k];
+            const unavailable =
               stock === 0 || (k === "medkit" && game.active.hp >= 100);
-          return `<button class="arsenal-item ${k === weapon ? "selected" : ""}" data-item="${k}" aria-label="${def.name}${unavailable ? ", unavailable" : ""}" aria-disabled="${unavailable}" aria-pressed="${k === weapon}" style="--item-color:${def.color}"><span class="item-category">${def.category}</span><span class="item-ammo">${stock < 0 ? "∞" : stock === 0 ? "EMPTY" : `×${stock}`}</span><img src="${scene.icons[k]}" alt="" /><strong>${def.name}</strong><small>${def.damage}</small>${k === "medkit" && game.active.hp >= 100 ? '<span class="item-unavailable">Already at full health</span>' : ""}</button>`;
-        })
-        .join("")
-    : '<p class="arsenal-empty">Nothing in this shed matches. Try a different name or category.</p>';
+            const slot = quickSlots.indexOf(k);
+            return `<button class="arsenal-item ${k === weapon ? "selected" : ""}" data-item="${k}" aria-label="${def.name}, ${stock < 0 ? "unlimited" : stock} ammo${unavailable ? ", unavailable" : ""}" aria-disabled="${unavailable}" aria-pressed="${k === weapon}" style="--item-color:${def.color}">${slot >= 0 ? `<span class="item-key">${slot + 1}</span>` : ""}<span class="item-ammo">${stock < 0 ? "∞" : stock}</span><img src="${scene.icons[k]}" alt="" /><strong>${def.short}</strong></button>`;
+          })
+          .join("")}</div></section>`;
+      }).join("")
+    : '<p class="arsenal-empty">No matching equipment.<br>Try another name or category.</p>';
   if (visible.length)
     describeItem(visible.includes(weapon) ? weapon : visible[0]);
   else
     el("arsenal-detail").textContent =
       "Try another search, or choose All to browse the full kit.";
 }
+function positionArsenal(): void {
+  const rect = field.getBoundingClientRect();
+  const top = rect.top + (window.innerHeight < 520 ? 76 : 104);
+  const dialog = el("arsenal-dialog");
+  dialog.style.left = `${rect.left + 12}px`;
+  dialog.style.top = `${top}px`;
+  dialog.style.maxHeight = `${window.innerHeight - top - 18}px`;
+}
+window.addEventListener("resize", () => {
+  if (arsenalOpen) positionArsenal();
+});
 function openArsenal(): void {
   if (!canAct()) return;
   arsenalOpen = true;
   cancelInput();
   audio.suspend();
   arsenalCategory = "All";
+  el<HTMLSelectElement>("arsenal-category").value = "All";
   el<HTMLInputElement>("arsenal-search").value = "";
   renderArsenal();
   describeItem(weapon);
+  positionArsenal();
   el<HTMLDialogElement>("arsenal-dialog").showModal();
+  el("arsenal-button").setAttribute("aria-expanded", "true");
+  el("arsenal-grid")
+    .querySelector<HTMLButtonElement>(`[data-item="${weapon}"]`)
+    ?.focus();
 }
 function closeArsenal(): void {
   el<HTMLDialogElement>("arsenal-dialog").close();
   arsenalOpen = false;
+  el("arsenal-button").setAttribute("aria-expanded", "false");
   cancelInput();
   audio.unlock();
   gameCanvas.focus();
@@ -368,17 +393,22 @@ function start(
       clamp(Math.floor(Number.isFinite(seed) ? seed : 41823), 1, 999999),
       {
         mode,
-        teamSize: mode === "practice" ? 2 : 4,
+        teamSize: mode === "practice" ? 2 : 3,
         names: DEFAULT_NAMES.map((names, team) =>
-          names.map(
-            (_, index) => el<HTMLInputElement>(`name-${team}-${index}`).value,
-          ),
+          names
+            .slice(0, 3)
+            .map(
+              (_, index) => el<HTMLInputElement>(`name-${team}-${index}`).value,
+            ),
         ),
       },
     );
-  for (const w of game.worms)
-    el<HTMLInputElement>(`name-${w.team}-${w.id % game.teamSize}`).value =
-      w.name;
+  for (const w of game.worms) {
+    const input = el<HTMLInputElement>(
+      `name-${w.team}-${w.id % game.teamSize}`,
+    );
+    if (input) input.value = w.name;
+  }
   buildTeamBars();
   running = true;
   paused = false;
@@ -395,7 +425,7 @@ function start(
   audio.unlock();
   el("field-seed").textContent = String(game.seed);
   el("map-layout").textContent =
-    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
+    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : `${game.teamSize}v${game.teamSize} skirmish`}`;
   el<HTMLInputElement>("seed-input").value = String(game.seed);
   field.classList.add("playing");
   el("banter").classList.remove("show");
@@ -675,17 +705,9 @@ el<HTMLInputElement>("motion-setting").onchange = (e) => {
 };
 el("close-arsenal").onclick = closeArsenal;
 el<HTMLInputElement>("arsenal-search").oninput = renderArsenal;
-el("arsenal-categories").onclick = (e) => {
-  const button = (e.target as HTMLElement).closest<HTMLButtonElement>(
-    "[data-category]",
-  );
-  if (button) {
-    arsenalCategory = button.dataset.category!;
-    renderArsenal();
-    el("arsenal-categories")
-      .querySelector<HTMLButtonElement>(`[data-category="${arsenalCategory}"]`)
-      ?.focus();
-  }
+el<HTMLSelectElement>("arsenal-category").onchange = (e) => {
+  arsenalCategory = (e.target as HTMLSelectElement).value;
+  renderArsenal();
 };
 el("arsenal-grid").onclick = (e) => {
   const button = (e.target as HTMLElement).closest<HTMLButtonElement>(
@@ -707,6 +729,68 @@ for (const type of ["pointerover", "focusin"])
     );
     if (button) describeItem(button.dataset.item as Weapon);
   });
+el("arsenal-grid").addEventListener("keydown", (e) => {
+  const event = e as KeyboardEvent;
+  const current = (event.target as HTMLElement).closest<HTMLButtonElement>(
+    "[data-item]",
+  );
+  if (
+    !current ||
+    ![
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+    ].includes(event.key)
+  )
+    return;
+  event.preventDefault();
+  const buttons = [
+    ...el("arsenal-grid").querySelectorAll<HTMLButtonElement>("[data-item]"),
+  ];
+  if (event.key === "Home" || event.key === "End") {
+    (event.key === "Home" ? buttons[0] : buttons.at(-1))?.focus();
+    return;
+  }
+  const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight";
+  const sign = event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1;
+  const origin = current.getBoundingClientRect();
+  const next = buttons
+    .filter((b) => b !== current)
+    .map((button) => {
+      const rect = button.getBoundingClientRect();
+      const dx = rect.x - origin.x,
+        dy = rect.y - origin.y;
+      return {
+        button,
+        along: sign * (horizontal ? dx : dy),
+        across: Math.abs(horizontal ? dy : dx),
+      };
+    })
+    .filter((p) => p.along > 1 && (!horizontal || p.across < 4))
+    .sort((a, b) =>
+      horizontal ? a.along - b.along : a.along - b.along || a.across - b.across,
+    )[0];
+  next?.button.focus();
+});
+el("arsenal-dialog").addEventListener("contextmenu", (e) => {
+  if (e.target instanceof HTMLInputElement) return;
+  e.preventDefault();
+  closeArsenal();
+});
+el("arsenal-dialog").addEventListener("click", (e) => {
+  if (e.target !== el("arsenal-dialog")) return;
+  const rect = el("arsenal-dialog").getBoundingClientRect();
+  if (
+    e.clientX < rect.left ||
+    e.clientX > rect.right ||
+    e.clientY < rect.top ||
+    e.clientY > rect.bottom
+  )
+    closeArsenal();
+});
 el("test-voice").onclick = () => audio.previewVoice();
 el<HTMLInputElement>("voice-volume").oninput = (e) => {
   audio.setVoiceVolume(Number((e.target as HTMLInputElement).value) / 100);
@@ -723,7 +807,7 @@ el("shuffle-seed").onclick = () => {
   el<HTMLInputElement>("seed-input").value = String(game.seed);
   el("field-seed").textContent = String(game.seed);
   el("map-layout").textContent =
-    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
+    `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : `${game.teamSize}v${game.teamSize} skirmish`}`;
 };
 function renderBindings(): void {
   const guide = [
@@ -738,10 +822,10 @@ function renderBindings(): void {
       "Hold to charge; release to fire · or use the left mouse button",
     ],
     ["1 · 2 · 3 · 4", "Your four quick slots"],
-    [keyLabel(bindings.arsenal), "Open the full arsenal · the turn pauses"],
+    [keyLabel(bindings.arsenal), "Left arsenal · the turn pauses"],
     [
-      `Right-drag · Wheel · ${keyLabel(bindings.recenter)}`,
-      "Pan · zoom · recenter",
+      `Right-click / drag · Wheel · ${keyLabel(bindings.recenter)}`,
+      "Arsenal / pan · zoom · recenter",
     ],
   ];
   el("help-controls").replaceChildren(
@@ -839,7 +923,7 @@ function refreshContinue(): void {
     }
     const saved = decodeSave(text);
     button.hidden = false;
-    button.textContent = `Continue · round ${saved.game.round}`;
+    button.textContent = `Continue ${saved.game.teamSize}v${saved.game.teamSize} · round ${saved.game.round}`;
     el("save-status").textContent =
       `Saved ${new Date(saved.savedAt).toLocaleString()} · field ${saved.game.seed}`;
   } catch {
@@ -874,7 +958,7 @@ el("menu-button").onclick = () => {
   el<HTMLDialogElement>("start-dialog").showModal();
 };
 for (const [team, names] of DEFAULT_NAMES.entries())
-  for (const [index, name] of names.entries()) {
+  for (const [index, name] of names.slice(0, 3).entries()) {
     const label = document.createElement("label"),
       input = document.createElement("input");
     label.textContent = `${team === 0 ? "Crew" : "Rival"} ${index + 1}`;
@@ -894,7 +978,7 @@ buildDock();
 el<HTMLInputElement>("seed-input").value = String(game.seed);
 el("field-seed").textContent = String(game.seed);
 el("map-layout").textContent =
-  `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : "4v4 skirmish"}`;
+  `${game.terrain.layout} / ${game.mode === "practice" ? "practice · unlimited kit · no timer" : `${game.teamSize}v${game.teamSize} skirmish`}`;
 dialogs.forEach((d) =>
   d.addEventListener("cancel", (e) => {
     e.preventDefault();
@@ -905,6 +989,9 @@ dialogs.forEach((d) =>
 );
 
 const gameCanvas = field.querySelector("canvas")!;
+let rightDragged = false,
+  rightStartX = 0,
+  rightStartY = 0;
 gameCanvas.tabIndex = 0;
 gameCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
 gameCanvas.addEventListener("pointerdown", (e) => {
@@ -914,6 +1001,9 @@ gameCanvas.addEventListener("pointerdown", (e) => {
   pointerKnown = true;
   if (e.button === 2) {
     dragging = true;
+    rightDragged = false;
+    rightStartX = e.clientX;
+    rightStartY = e.clientY;
     dragX = e.clientX;
     dragY = e.clientY;
     gameCanvas.setPointerCapture(e.pointerId);
@@ -930,6 +1020,9 @@ gameCanvas.addEventListener("pointerdown", (e) => {
 });
 gameCanvas.addEventListener("pointermove", (e) => {
   if (dragging) {
+    if (Math.hypot(e.clientX - rightStartX, e.clientY - rightStartY) > 6)
+      rightDragged = true;
+    if (!rightDragged) return;
     scene.pan(e.clientX - dragX, e.clientY - dragY);
     dragX = e.clientX;
     dragY = e.clientY;
@@ -946,10 +1039,12 @@ gameCanvas.addEventListener("pointermove", (e) => {
   }
 });
 gameCanvas.addEventListener("pointerup", (e) => {
+  const openKit = e.button === 2 && dragging && !rightDragged;
   if (e.button === 2) dragging = false;
   else if (e.button === 0) fire();
   if (gameCanvas.hasPointerCapture(e.pointerId))
     gameCanvas.releasePointerCapture(e.pointerId);
+  if (openKit) openArsenal();
 });
 gameCanvas.addEventListener("pointercancel", cancelInput);
 gameCanvas.addEventListener(
@@ -1315,7 +1410,7 @@ registerGameTools([
   {
     name: "start_skirmish",
     description:
-      "Start or restart the local 4-versus-4 game at the given map seed. Replaces the current match, exactly like the Start/Restart buttons.",
+      "Start or restart the local 3-versus-3 game at the given map seed. Replaces the current match, exactly like the Start/Restart buttons.",
     inputSchema: {
       type: "object",
       properties: { seed: { type: "integer", minimum: 1, maximum: 999999 } },

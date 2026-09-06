@@ -23,7 +23,7 @@ The broad battlefield, small worm-shaped characters, expressive inching, playful
 ## Launch experience
 
 - Single player, one human squad against one computer squad.
-- Two teams of four creatures, each starting at 100 health.
+- Two teams of three creatures, each starting at 100 health.
 - One fixed, challenging opponent. No difficulty menu, hidden adaptive weakening, or tutorial opponent carried into normal matches.
 - Fully two-dimensional appearance and side-on gameplay, rendered in Three.js with an orthographic camera, sprites, and textured quads. Characters and terrain look illustrated, with no modeled 3D character appearance or camera orbit.
 - A broad terrain overview with characters small relative to the map. Zoom helps movement and aiming, then the camera follows long shots without losing battlefield context; oversized character portraits and cinematic closeups are not the default play view.
@@ -196,7 +196,7 @@ The slice passes when a new player can finish a match, understand why shots and 
 
 ### Required v1
 
-All ten starting items, 4v4 squads, three themes, validated procedural seeds, strong fair AI, full movement polish, original visual and sound identity including 48 short voiced banter clips, the four practice drills, accessibility settings, local resume, production performance work, and cross-browser release validation. Voice production requires a suitable authorized source. Captions and scratch reactions are sufficient for the slice; if voices cannot be produced for release, that requires an explicit scope revision rather than treating captions as fulfillment of the voiced-banter requirement.
+All ten starting items, 3v3 squads, three themes, validated procedural seeds, strong fair AI, full movement polish, original visual and sound identity including 48 short voiced banter clips, the four practice drills, accessibility settings, local resume, production performance work, and cross-browser release validation. Voice production requires a suitable authorized source. Captions and scratch reactions are sufficient for the slice; if voices cannot be produced for release, that requires an explicit scope revision rather than treating captions as fulfillment of the voiced-banter requirement.
 
 ### Explicitly later
 

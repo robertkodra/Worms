@@ -1,6 +1,6 @@
 # Delivery plan
 
-Status: Skirmish 04 adds mixed-team surface/cave spawns and validated cave entrances. Skirmish 03 implements the 4v4 rules, background shot planner, three scenery themes, practice, local names, rebinding and exact turn-start save/resume. See [the release record](../docs/RELEASE.md) for current measured evidence and launch gates. P0 is complete; P1–P5 have playable implementations with remaining human-feel, final-audio and browser/performance acceptance checks. P6 has static configuration and CI but no hosted deployment.
+Status: Skirmish 05 uses 3v3 teams and a compact left-side weapon panel. Skirmish 04 adds mixed-team surface/cave spawns and validated cave entrances. Skirmish 03 implements the 4v4 rules, background shot planner, three scenery themes, practice, local names, rebinding and exact turn-start save/resume. See [the release record](../docs/RELEASE.md) for current measured evidence and launch gates. P0 is complete; P1–P5 have playable implementations with remaining human-feel, final-audio and browser/performance acceptance checks. P6 has static configuration and CI but no hosted deployment.
 
 ## Prototype 02 — Accepted playtest expansion
 
@@ -44,7 +44,7 @@ This is the first game to try together. Do not mistake a terrain demo or trailer
 
 Dependencies: P2 complete loop and initial playtest feedback.
 
-- Expand to four characters per team and ten distinct items.
+- Use three characters per team and ten distinct items.
 - Add item limits, turn availability, mines/crates if specified by the final item design, and rising-water sudden death.
 - Improve AI with reachable-position candidates, bounded projectile rollouts, self/friendly-damage scoring, inventory value, and retreat planning.
 - Use a worker with progress reporting, cancellation, and a deterministic baseline fallback.

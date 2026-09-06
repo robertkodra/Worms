@@ -32,10 +32,15 @@ function advanceTurn(game: Game): void {
 }
 
 describe("release match rules", () => {
-  it("spawns eight supported worms on 64 reproducible fields", () => {
+  it("spawns six supported worms on 64 reproducible fields", () => {
     for (let seed = 1; seed <= 64; seed++) {
       const game = new Game(seed);
-      expect(game.worms).toHaveLength(8);
+      expect(game.worms).toHaveLength(6);
+      expect(game.teamSize).toBe(3);
+      expect(game.worms.filter((w) => w.team === 0)).toHaveLength(3);
+      expect(game.inventory[0].shotgun).toBe(5);
+      expect(game.inventory[0].sniper).toBe(3);
+      expect(game.inventory[0].medkit).toBe(1);
       for (const w of game.worms) {
         expect(game.terrain.bodyCollides(w.x, w.y)).toBe(false);
         expect(game.terrain.bodyCollides(w.x, w.y + 2)).toBe(true);
@@ -50,22 +55,22 @@ describe("release match rules", () => {
   it("cycles every surviving worm once after eliminations", () => {
     const game = new Game(19);
     game.worms[0].hp = 0;
-    game.worms[4].hp = 0;
+    game.worms[3].hp = 0;
     const order: number[] = [];
     for (let i = 0; i < 12; i++) {
       advanceTurn(game);
       order.push(game.activeId);
     }
-    expect(order).toEqual([5, 1, 6, 2, 7, 3, 5, 1, 6, 2, 7, 3]);
+    expect(order).toEqual([4, 1, 5, 2, 4, 1, 5, 2, 4, 1, 5, 2]);
   });
-  it("starts rising water after round 16 and idle matches reach an ending", () => {
+  it("starts rising water after round 12 and idle matches reach an ending", () => {
     const game = new Game(21);
-    for (let i = 0; i < 30; i++) advanceTurn(game);
-    expect(game.round).toBe(16);
+    for (let i = 0; i < 22; i++) advanceTurn(game);
+    expect(game.round).toBe(12);
     expect(game.water).toBe(802);
     advanceTurn(game);
     advanceTurn(game);
-    expect(game.round).toBe(17);
+    expect(game.round).toBe(13);
     expect(game.water).toBe(778);
     for (let i = 0; i < 100 && game.phase !== "over"; i++) advanceTurn(game);
     expect(game.phase).toBe("over");
@@ -85,6 +90,15 @@ describe("release match rules", () => {
 });
 
 describe("recoverable saves", () => {
+  it.each([2, 3, 4] as const)(
+    "continues a saved match with %s worms per crew",
+    (teamSize) => {
+      const game = new Game(34, { teamSize });
+      const restored = decodeSave(encodeSave(game, "garden")).game;
+      expect(restored.teamSize).toBe(teamSize);
+      expectSameSnapshot(restored.snapshot(), game.snapshot());
+    },
+  );
   it("restores exact terrain, names, inventory, rotations and future random draws", () => {
     const game = new Game(432, { names: [["<b>Pip</b>"]] });
     game.terrain.carve(500, 540, 83);

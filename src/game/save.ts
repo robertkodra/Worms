@@ -64,7 +64,9 @@ export function decodeSave(text: string): SavedMatch {
   requireValid(integer(data.savedAt, 0, Number.MAX_SAFE_INTEGER));
   const s = data.snapshot;
   requireValid(
-    record(s) && s.version === 1 && (s.teamSize === 2 || s.teamSize === 4),
+    record(s) &&
+      s.version === 1 &&
+      (s.teamSize === 2 || s.teamSize === 3 || s.teamSize === 4),
   );
   requireValid(
     integer(s.seed, 1, 999999) && integer(s.randomState, 0, 0xffffffff),

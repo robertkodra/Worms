@@ -1,5 +1,7 @@
 # Scattered battlefields — 0.4.0
 
+This records the 0.4.0 update. New skirmishes now use 3v3 teams with one cave start per crew when available; see the [0.5.0 update](LEFT_ARSENAL.md).
+
 Worm positions now use two coordinates and actual terrain floors. Worm IDs, names and team rotation stay stable; an ID no longer implies a side of the battlefield.
 
 ## Inspiration
